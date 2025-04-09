@@ -5,7 +5,7 @@
 # Erase.js
 **TODO**
 
-> [!INFO]
+> [!NOTE]
 > My source code is still **under development**!
 
 <br><br>
