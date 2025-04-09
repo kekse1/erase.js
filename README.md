@@ -25,8 +25,8 @@
 <br>
 
 ## Architecture/Structure
-This project is also based on some base implementation which is currently not available for public,
-so **it won't run 'as-is'**!!1
+This project is also based on some base implementation which is currently not available for public;
+**it won't run 'as-is'**!1
 
 The reason I made this one public is to provide you some example code you could use.
 Or feel free to create a full fledged version out of this one.
