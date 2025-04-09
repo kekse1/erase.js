@@ -1,0 +1,30 @@
+{
+	"project": {
+		"type": "directory",
+		"required": true
+	},
+	"script": {
+		"type": "directory",
+		"required": true
+	},
+	"config": {
+		"type": "file",
+		"required": true
+	},
+	"random": {
+		"type": "boolean",
+		"required": false
+	},
+	"iterations": {
+		"type": "integer",
+		"required": false
+	},
+	"parallel": {
+		"type": "integer",
+		"required": false
+	},
+	"buffer": {
+		"type": "integer",
+		"required": false
+	}
+}

@@ -1,0 +1,18 @@
+{
+	"enabled": true,
+
+	/* random bytes (via 'crypto.randomBytes')?
+		otherwise only \0 bytes are used. */
+	"random": false,
+
+	/* amount of overwrite iterations..
+		so with multiple times it *should* be (bit) more secure. */
+	"iterations": 1,
+
+	/* *not* threads, but w/ ASYNC operations we can open more files in "parallel" .. */
+	"parallel": 8,
+
+	/* how many bytes reverse and write in each step? */
+	"buffer": 64000000
+
+}

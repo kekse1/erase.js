@@ -1,0 +1,43 @@
+<img src="https://kekse.biz/github.php?draw&override=github:erase.js" />
+
+<br>
+
+# Erase.js
+**TODO**
+
+> [!INFO]
+> My source code is still **under development**!
+
+<br><br>
+
+## News
+* \[**2025-04-09**\] Created this repository (I'm already working on this tool, right now);
+
+<br>
+
+## Download
+* [**`./src/js/`**](src/js/) (published **2025-04-09**);
+
+### Parameters and Configuration
+* [**`param.json`**](src/json/param.json) (published **2025-04-09**);
+* [**`config.json`**](src/json/config.json) (published **2025-04-09**);
+
+<br>
+
+## Architecture/Structure
+This project is also based on some base implementation which is currently not available for public.
+
+But the reason I made this one public is to provide you some example code you could use.
+Or feel free to create a full fledged version out of this one.
+
+# Contact
+<img src="https://kekse.biz/github.php?override=github:erase.js&draw&text=erase.js@kekse.biz&angle=6&size=38pt&fg=150,20,90&font=OpenSans&ro&readonly&h=64&v=16" />
+
+# Copyright and License
+The Copyright is [(c) Sebastian Kucharczyk](./COPYRIGHT.txt),
+and it's licensed under the [MIT](./LICENSE.txt) (also known as 'X' or 'X11' license).
+
+<a href="https://kekse.biz/">
+<img src="favicon.png" alt="Favicon" />
+</a>
+
