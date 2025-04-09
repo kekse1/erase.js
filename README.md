@@ -3,10 +3,15 @@
 <br>
 
 # Erase.js
-**TODO**
+The plan is to wipe all the [**Termux Linux**](https://termux.dev/) files
+on my smartphone (more/less) securely.. by traversing a directory and
+overwriting all files with exactly the same amount of `\0` or random bytes.
 
 > [!NOTE]
 > My source code is still **under development**!
+
+> [!WARNING]
+> On Flash drives it's not perfectly secure.. but I'll research a bit more for this issue.
 
 <br><br>
 
