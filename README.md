@@ -16,7 +16,7 @@ Without jailbreak there's no `dd` available, which is my regular tool for this.
 > [!WARNING]
 > On Flash drives it's not perfectly secure.. but I'll research a bit more for this issue.
 
-<br><br>
+<br>
 
 ## News
 * \[**2025-04-09**\] Created this repository (I'm already working on this tool, right now);
@@ -38,6 +38,8 @@ This project is also based on some base implementation which is currently not av
 
 The reason I made this one public is to provide you some example code you could use.
 Or feel free to create a full fledged version out of this one.
+
+<br><br>
 
 # Contact
 <img src="https://kekse.biz/github.php?override=github:erase.js&draw&text=erase.js@kekse.biz&angle=6&size=38pt&fg=150,20,90&font=OpenSans&ro&readonly&h=64&v=16" />
