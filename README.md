@@ -3,14 +3,15 @@
 <br>
 
 # Erase.js
+
+> [!NOTE]
+> My source code is still **under development**!
+
 The plan is to wipe all the [**Termux Linux**](https://termux.dev/) files
 on my smartphone (more/less) securely.. by traversing a directory and
 overwriting all files with exactly the same amount of `\0` or random bytes.
 
 Without jailbreak there's no `dd` available, which is my regular tool for this.
-
-> [!NOTE]
-> My source code is still **under development**!
 
 > [!WARNING]
 > On Flash drives it's not perfectly secure.. but I'll research a bit more for this issue.
