@@ -390,8 +390,9 @@ class Erase extends Quant
 
 		var rest = this.links.length;
 		const callback = (_link) => {
-			this.status(_link);
+			++this.done; this.status(_link);
 			if(--rest <= 0) _callback(); };
+		this.s = 'l'; this.done = 0;
 		
 		var add = Erase.simulate; for(var i = 0; i < this.links.length; ++i)
 		{
@@ -410,16 +411,16 @@ class Erase extends Quant
 
 	deleteDirectories(_callback)
 	{
-		console.eol();
-		console.info('Last but not least we\'re deleting ' +
+		console.info(EOL + 'Last but not least we\'re deleting ' +
 			this.directories.length.toLocaleString().
-			bold(true).warn(true) + ' directories now.');
+			bold(true).warn(true) + ' directories now.' + EOL);
 
 
 		var rest = this.directories.length;
 		const callback = (_dir) => {
-			this.status(_dir);
+			++this.done; this.status(_dir);
 			if(--rest <= 0) _callback(); };
+		this.s = 'd'; this.done = 0;
 
 		var add = Erase.simulate; for(var i = 0; i < this.directories.length; ++i)
 		{
@@ -447,12 +448,13 @@ class Erase extends Quant
 
 		var rest = this.LIST.length;
 		const callback = (_file) => {
-			this.status(_file); if(--rest > 0) return;
+			++this.done; this.status(_file);
+			if(--rest > 0) return;
 			this.deleteSymlinks(() => {
 				this.deleteDirectories(() => {
 					this.summary(); }); }); };
+		this.s = 't'; this.done = 0;
 
-		
 		var add = Erase.simulate; for(var i = 0; i < this.LIST.length; ++i)
 		{
 			const file = this.LIST[i];
@@ -525,20 +527,16 @@ class Erase extends Quant
 		if(string(_file))
 		{
 			_file = this.getFileString(_file);
-			return process.stdout.write('\t' +
-				this.getFileString(_file) +
-				String.none() + EOL);
+			return process.stdout.write('['.faint(true) + this.progress +
+				']'.faint(true) + ' ' + _ansi +
+				this.getFileString(_file) + String.none() + EOL);
 		}
 
-		const size = ('\t' + _file.size.warn(true).
-			pad(this.max[1], ' ', true) +
-			'\t' + this.progress);
-		process.stdout.write('  ['.debug(true) + _ansi +
-			_file.string.pad(this.max[0], ' ', true) +
-			']'.debug(true) + size);
-
-		if(_ansi) process.stdout.write(String.none());
-		process.stdout.write(EOL);
+		const size = ('\t' + _file.size.warn(true).pad(this.max[1], ' ', true));
+		return process.stdout.write('['.faint(true) + this.progress +
+			']'.faint(true) + ' ' + _ansi + _file.string.pad(
+				this.max[0], ' ', true) + ' ' + size +
+					String.none() + EOL);
 	}
 
 	static getPercentMax(_round = 2)
@@ -559,10 +557,13 @@ class Erase extends Quant
 	get progress()
 	{
 		if(!this.bytes) return '-/-'.debug(true);
-		const percent = Math.round(this.done / this.bytes * 100, 2);
-		var result = percent.toString().padStart(Erase.getPercentMax(2), ' ');
-		result += '%'.error(true);
-		return result;
+		var from; if(this.s === 'd') from = this.found.directories;
+		else if(this.s === 'l') from = this.found.links;
+		else if(this.s === 't') from = this.found.files;
+		else from = this.bytes;
+		const percent = Math.round(this.done / from * 100, 2);
+		return (percent.toFixed(2).padStart(Erase.getPercentMax(2), ' ')).
+			info(true) + '%'.error(true) + String.none();
 	}
 	
 	info()
