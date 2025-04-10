@@ -1,9 +1,14 @@
 {
+
+	/* the usual global switch */
 	"enabled": true,
+
+	/* normally you should also handle hidden/dot files (`.` prefixed); */
+	"hidden": true,
 
 	/* random bytes (via 'crypto.randomBytes')?
 		otherwise only \0 bytes are used. */
-	"random": false,
+	"random": true,
 
 	/* amount of overwrite iterations..
 		so with multiple times it *should* be (bit) more secure. */

@@ -6,8 +6,7 @@
 //
 const DEFAULT_PARAM_SCHEME_JSON = '../../json/param/erase.json';
 const DEFAULT_CODE = null;//'erase!';
-const DEFAULT_SIMULATE = 600;//(int>0) for setTimeout();
-const DEFAULT_LENGTH_MAX = Math.min(console.width - 64, 64);
+const DEFAULT_SIMULATE = 220;//(int>0) for setTimeout();
 
 //
 import Application from '../shared/app.js';
@@ -57,42 +56,40 @@ class Erase extends Quant
 			}
 
 			//
-			var path = null, found = false, stats;
+			var entry = null, found = false, stats;
 
 			for(var i = 0; i < this.param.length; ++i)
 			{
 				if(pathname(this.param[i]))
 				{
-					path = this.param.splice(i--, 1)[0];
 					found = true;
+					entry = this.param.splice(i--, 1)[0];
 
 					try
 					{
-						path = fs.realpathSync(path, {
-							encoding: 'utf8' });
+						stats = fs.lstatSync(entry);
 					}
 					catch(_err)
 					{
-						path = null;
-					}
-
-					if(!path)
-					{
+						entry = null;
 						continue;
 					}
 
-					stats = fs.lstatSync(path);
-
-					if(!stats.isDirectory())
+					if(stats.isDirectory())
 					{
-						path = null;
+						entry = path.resolve(entry);
+						break;
+					}
+					else
+					{
+						entry = null;
 					}
 				}
 			}
 
-			if(path)
+			if(entry)
 			{
-				this.path = path;
+				this.path = entry;
 			}
 			else
 			{
@@ -109,6 +106,15 @@ class Erase extends Quant
 			}
 
 			//
+			if(this.param.has('hidden'))
+			{
+				this.hidden = this.param.get('hidden');
+			}
+			else
+			{
+				this.hidden = this.getConfig('hidden');
+			}
+
 			if(this.param.has('random'))
 			{
 				this.random = this.param.get('random');
@@ -214,6 +220,7 @@ class Erase extends Quant
 		//
 		this.list = [];
 		this.links = [];
+		this.directories = [];
 		this.files = 0;
 		this.errors = [];
 		this.openDirectories = 0;
@@ -245,31 +252,26 @@ class Erase extends Quant
 
 			var p; for(var i = 0; i < _files.length; ++i)
 			{
+				if(!this.hidden && _files[i].name[0] === '.')
+				{
+					continue;
+				}
+
+				p = path.join(_path, _files[i].name);
+
 				if(_files[i].isSymbolicLink())
 				{
-					this.links.push(path.join(_path, _files[i].name));
+					this.links.push(p);
 					++this.found.links;
 				}
 				else if(_files[i].isDirectory())
 				{
 					++this.found.directories;
-					this.findFiles(path.join(
-						_path, _files[i].name));
+					this.directories.push(p);
+					this.findFiles(p);
 				}
 				else if(_files[i].isFile())
 				{
-					p = path.join(_path, _files[i].name);
-
-					try
-					{
-						p = fs.realpathSync(p, {
-							encoding: 'utf8' });
-					}
-					catch(_err)
-					{
-						continue;
-					}
-
 					if(p = this.prepareFile(p))
 					{
 						++this.found.files;
@@ -280,6 +282,9 @@ class Erase extends Quant
 
 			if(--this.openDirectories <= 0)
 			{
+				this.directories.reverse();
+				this.directories.push(this.path);
+				++this.found.directories;
 				this.LIST = [ ... this.list ];
 				delete this.openDirectories;
 				this.prepare();
@@ -296,13 +301,22 @@ class Erase extends Quant
 
 	prepare()
 	{
-		if(this.found.files === 0 && this.found.links === 0)
+		if(this.found.files === 0 &&
+			this.found.links === 0 &&
+			this.found.directories === 1)
 		{
 			console.warn('Nothing to delete found in ' +
-				(this.found.directories + 1).toLocaleString().
+				this.found.directories.toLocaleString().
 					error(true).bold(true) +
 				' directories.');
-			process.exit();
+			return this.destroy();
+			//process.exit();
+		}
+		else
+		{
+			console.info('Entry point: ' +
+				this.path.bold(true).warn(true));
+			console.eol();
 		}
 
 		this.size = Math.size.styled(
@@ -310,14 +324,9 @@ class Erase extends Quant
 				(' (' + this.bytes.toLocaleString() + ' Bytes)').debug(true) : '');
 		this.max[2] = this.size.textLength;
 
-		if(DEFAULT_LENGTH_MAX < this.max[2])
-		{
-			this.max[2] = DEFAULT_LENGTH_MAX;
-		}
-
 		console.info('Found ' + this.found.files.toLocaleString().
 			warn(true).bold(true) + ' files in ' +
-			(this.found.directories + 1).toLocaleString().
+			this.found.directories.toLocaleString().
 			warn(true).bold(true) + ' directories: ' +
 			this.size.error(true));
 		if(this.found.links > 0) console.info('Additionally there are also ' +
@@ -379,7 +388,7 @@ class Erase extends Quant
 			if(rest <= 0) { console.eol(); this.finish(); }};*/
 		
 		console.eol();
-		console.debug('Now deleting ' + this.found.links.toLocaleString().
+		console.info('Now deleting ' + this.found.links.toLocaleString().
 			bold(true).info(true) + ' symbolic links ' + '...' + EOL);
 
 		var rest = this.links.length;
@@ -403,14 +412,25 @@ class Erase extends Quant
 			}
 		}
 	}
-	
-	finish(_fin = this.fin)
-	{
-		if(!_fin)
-		{
-			return false;
-		}
 
+	deleteDirectories(_callback)
+	{
+		var rest = this.directories.length;
+
+		console.eol();
+		console.warn('I would delete ' +
+			rest.toLocaleString().info(true).bold(true) +
+			' directories now, ' + 'but this feature is still TODO'.
+				error(true).underline(true) + '!');
+
+		_callback();
+	}
+	
+	//
+	//TODO/SYNC (see .parallel!!): .. setTimeout() w/ simulation
+	//
+	finish()
+	{
 		console.eol();
 		console.info('Now we\'re truncating each file to zero length.');
 		console.eol();
@@ -423,16 +443,14 @@ class Erase extends Quant
 		}
 
 		process.stdout.write(String.none());
-		return this.deleteSymlinks(() => this.summary(_fin));
+
+		this.deleteSymlinks(() => {
+			this.deleteDirectories(() => {
+				this.summary(); }); });
 	}
 
-	summary(_fin = this.fin)
+	summary()
 	{
-		if(!_fin)
-		{
-			return;
-		}
-
 		console.eol();
 
 		if(this.files > 0)
@@ -445,6 +463,11 @@ class Erase extends Quant
 			if(this.links.length > 0) console.info('And we also unlinked ' +
 				this.links.length.toLocaleString().bold(true).warn(true) +
 				' symbolic links.');
+			console.info('Then removed the whole structure below entry point: ' +
+				this.found.directories.toLocaleString().bold(true).warn(true) +
+				' directories.');
+			console.debug('Entry point was: ' +
+				this.path.info(true));
 		}
 		else
 		{
@@ -452,14 +475,27 @@ class Erase extends Quant
 		}
 
 		console.eol();
-		console.debug('The original ' + 'directory'.bold(true) +
-			' structure is ' + 'never'.error(true) + ' being removed!');
-		console.warn('Please '.error(true) +
-			'`' + 'rm -rf'.info(true) + ' ' +
-			this.path.warn(true).bold(true) +'`.');
 
 		//
 		return this.destroy();
+	}
+
+	getFileString(_file)
+	{
+		if(_file.text.startsWith('.../'))
+		{
+			return _file;
+		}
+
+		const dir = path.dirname(_file);
+		_file = path.basename(_file);
+
+		if(dir !== '.' && dir !== this.path)
+		{
+			return '.../'.faint(true) + _file;
+		}
+
+		return _file;
 	}
 
 	//
@@ -469,42 +505,21 @@ class Erase extends Quant
 
 		if(string(_file))
 		{
-			if(path.isAbsolute(_file))
-			{
-				_file = path.relative(
-					this.path, _file);
-			}
-			
+			_file = this.getFileString(_file);
 			return process.stdout.write('\t' +
-				Erase.stylePath(_file) +
-					String.none() + EOL);
+				this.getFileString(_file) +
+				String.none() + EOL);
 		}
 
 		const size = ('\t' + _file.size.warn(true).
 			pad(this.max[1], ' ', true) +
 			'\t' + this.progress);
 		process.stdout.write('  ['.debug(true) + _ansi +
-			Erase.stylePath(_file.relative).
-			pad(this.max[0], ' ', true) +
+			_file.string.pad(this.max[0], ' ', true) +
 			']'.debug(true) + size);
 
 		if(_ansi) process.stdout.write(String.none());
 		process.stdout.write(EOL);
-	}
-
-	static stylePath(_path)
-	{
-		const idx = _path.indexOf('/');
-
-		if(idx === -1)
-		{
-			return _path.bold(true);
-		}
-
-		const dir = path.dirname(_path);
-		const file = path.basename(_path);
-
-		return (dir + path.sep + file.bold(true));
 	}
 
 	static getPercentMax(_round = 2)
@@ -536,6 +551,9 @@ class Erase extends Quant
 		console.dir("info()");
 	}
 
+	//
+	//maybe(!!) also w/o '*Sync()'.. see '.parallel' then!
+	//
 	prepareFile(_path)
 	{
 		const stat = fs.statSync(_path, {
@@ -550,21 +568,15 @@ class Erase extends Quant
 		
 		const result = {
 			path: _path,
-			relative: path.relative(this.path, _path),
+			//relative: path.relative(this.path, _path),
+			string: this.getFileString(_path),
 			stat, bytes: stat.size,
 			size: Math.size.styled(stat.size) + (stat.size >= 1024 ?
 				(' (' + stat.size.toLocaleString() + ' Bytes)').debug(true) : '') };
 
-		if(result.relative.length > this.max[0])
+		if(result.string.length > this.max[0])
 		{
-			this.max[0] = result.relative.length;
-		}
-
-		if(DEFAULT_LENGTH_MAX < this.max[0])
-		{
-			this.max[0] = DEFAULT_LENGTH_MAX;
-			result.relative = '...' + result.relative.substr(
-				0, (DEFAULT_LENGTH_MAX - 3));
+			this.max[0] = result.string.length;
 		}
 
 		if(result.size.textLength > this.max[1])
@@ -572,11 +584,6 @@ class Erase extends Quant
 			this.max[1] = result.size.textLength;
 		}
 
-		if(DEFAULT_LENGTH_MAX < this.max[1])
-		{
-			this.max[1] = DEFAULT_LENGTH_MAX;
-		}
-		
 		return result;
 	}
 
