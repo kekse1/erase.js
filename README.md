@@ -5,7 +5,8 @@
 # Erase.js
 
 > [!NOTE]
-> Nearly finished the code.. it should already work.. maybe.
+> The latest upload **theoretically** works.. as simulation!
+> There's a last bug I've to check.. so l8rs!
 
 The plan is to wipe all the [**Termux Linux**](https://termux.dev/) files
 on my smartphone (more/less) securely.. by traversing a directory and
