@@ -225,6 +225,11 @@ class Erase extends Quant
 		this.bytes = 0;
 		this.size = null;
 		this.max = [ 0, 0, 0 ];
+		
+		if(Erase.simulate !== null)
+		{
+			this.add = 0;
+		}
 
 		//
 		this.findFiles(this.path);
@@ -645,12 +650,6 @@ class Erase extends Quant
 
 		if(_file.handle === null)
 		{
-			//hab's hier weil spaeter eh geloscht..!1
-			if(! ('add' in this))
-			{
-				this.add = 0;
-			}
-
 			setTimeout(finish, Erase.simulate + this.add);
 			this.add += Erase.simulate;
 			return false;
