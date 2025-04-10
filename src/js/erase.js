@@ -6,7 +6,7 @@
 //
 const DEFAULT_PARAM_SCHEME_JSON = '../../json/param/erase.json';
 const DEFAULT_CODE = null;//'erase!';
-const DEFAULT_SIMULATE = 220;//(int>0) for setTimeout();
+const DEFAULT_SIMULATE = 200;//(int>0) for setTimeout();
 
 //
 import Application from '../shared/app.js';
@@ -233,10 +233,7 @@ class Erase extends Quant
 		this.size = null;
 		this.max = [ 0, 0, 0 ];
 		
-		if(Erase.simulate !== null)
-		{
-			this.add = 0;
-		}
+		this.add = Erase.simulate;
 
 		//
 		this.findFiles(this.path);
@@ -314,8 +311,8 @@ class Erase extends Quant
 		}
 		else
 		{
-			console.info('Entry point: ' +
-				this.path.bold(true).warn(true));
+			console.warn('Entry point: ' +
+				this.path.bold(true).error(true));
 			console.eol();
 		}
 
@@ -396,34 +393,47 @@ class Erase extends Quant
 			this.status(_link);
 			if(--rest <= 0) _callback(); };
 		
-		var add = 0; for(var i = 0; i < this.links.length; ++i)
+		var add = Erase.simulate; for(var i = 0; i < this.links.length; ++i)
 		{
 			const link = this.links[i];
 			
-			if(Erase.simulate === null)
+			if(add)
 			{
-				fs.unlink(link, () => callback(link));
-			}
-			else
-			{
-				setTimeout(() => callback(link),
-					Erase.simulate + add);
+				setTimeout(() => callback(link), add);
 				add += Erase.simulate;
 			}
+			else fs.unlink(link, (_err) => {
+				if(_err) throw _err;
+				callback(link); });
 		}
 	}
 
 	deleteDirectories(_callback)
 	{
-		var rest = this.directories.length;
-
 		console.eol();
-		console.warn('I would delete ' +
-			rest.toLocaleString().info(true).bold(true) +
-			' directories now, ' + 'but this feature is still TODO'.
-				error(true).underline(true) + '!');
+		console.info('Last but not least we\'re deleting ' +
+			this.directories.length.toLocaleString().
+			bold(true).warn(true) + ' directories now.');
 
-		_callback();
+
+		var rest = this.directories.length;
+		const callback = (_dir) => {
+			this.status(_dir);
+			if(--rest <= 0) _callback(); };
+
+		var add = Erase.simulate; for(var i = 0; i < this.directories.length; ++i)
+		{
+			const dir = this.directories[i];
+
+			if(add)
+			{
+				setTimeout(() => callback(dir), add);
+				add += Erase.simulate;
+			}
+			else fs.rmdir(dir, { recursive: false }, (_err) => {
+				if(_err) throw _err;
+				callback(dir); });
+		}
 	}
 	
 	//
@@ -431,22 +441,31 @@ class Erase extends Quant
 	//
 	finish()
 	{
-		console.eol();
-		console.info('Now we\'re truncating each file to zero length.');
-		console.eol();
-		process.stdout.write(''.info(false));
+		console.info(EOL +
+			'Now we\'re truncating each file to zero length.' +
+				EOL);
+
+		var rest = this.LIST.length;
+		const callback = (_file) => {
+			this.status(_file); if(--rest > 0) return;
+			this.deleteSymlinks(() => {
+				this.deleteDirectories(() => {
+					this.summary(); }); }); };
+
 		
-		for(var i = 0; i < this.LIST.length; ++i)
+		var add = Erase.simulate; for(var i = 0; i < this.LIST.length; ++i)
 		{
-			fs.truncateSync(this.LIST[i].path, 0);
-			this.status(this.LIST[i].path);
+			const file = this.LIST[i];
+
+			if(add)
+			{
+				setTimeout(() => callback(file), add);
+				add += Erase.simulate;
+			}
+			else fs.truncate(file, 0, (_err) => {
+				if(_err) throw _err;
+				callback(file); });
 		}
-
-		process.stdout.write(String.none());
-
-		this.deleteSymlinks(() => {
-			this.deleteDirectories(() => {
-				this.summary(); }); });
 	}
 
 	summary()
@@ -466,8 +485,8 @@ class Erase extends Quant
 			console.info('Then removed the whole structure below entry point: ' +
 				this.found.directories.toLocaleString().bold(true).warn(true) +
 				' directories.');
-			console.debug('Entry point was: ' +
-				this.path.info(true));
+			console.info('Entry point was: ' +
+				this.path.error(true));
 		}
 		else
 		{
@@ -657,7 +676,7 @@ class Erase extends Quant
 
 		if(_file.handle === null)
 		{
-			setTimeout(finish, Erase.simulate + this.add);
+			setTimeout(finish, this.add);
 			this.add += Erase.simulate;
 			return false;
 		}
