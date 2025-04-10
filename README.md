@@ -5,7 +5,7 @@
 # Erase.js
 
 > [!NOTE]
-> My source code is still **under development**! But seems to work...
+> Nearly finished the code.. it should already work.. maybe.
 
 The plan is to wipe all the [**Termux Linux**](https://termux.dev/) files
 on my smartphone (more/less) securely.. by traversing a directory and
@@ -24,11 +24,12 @@ Without jailbreak there's no `dd` available, which is my regular tool for this.
 <br>
 
 ## Download
-* [**`./src/js/`**](src/js/) (updated **2025-04-09**);
+* [**`./src/js/`**](src/js/) (updated **2025-04-10**);
+* [**`./src/sh/`**](src/sh/) (published **2025-04-09**);
 
 ### Parameters and Configuration
-* [**`param.json`**](src/json/param.json) (published **2025-04-09**);
-* [**`config.json`**](src/json/config.json) (published **2025-04-09**);
+* [**`param.json`**](src/json/param.json) (updated **2025-04-10**);
+* [**`config.json`**](src/json/config.json) (updated **2025-04-10**);
 
 <br>
 
