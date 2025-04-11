@@ -5,9 +5,9 @@
 
 //
 const DEFAULT_PARAM_SCHEME_JSON = '../../json/param/erase.json';
-const DEFAULT_CODE = null;//'erase!';
-const DEFAULT_SIMULATE = 120;//(int>0) for setTimeout();
-const DEFAULT_ROUND = 2;
+const DEFAULT_CODE = 'erase!';//(null) disables this. ..
+const DEFAULT_SIMULATE = 96;//(int>0) for setTimeout();
+const DEFAULT_ROUND = 1;
 
 //
 import Application from '../shared/app.js';
@@ -107,15 +107,6 @@ class Erase extends Quant
 			}
 
 			//
-			if(this.param.has('hidden'))
-			{
-				this.hidden = this.param.get('hidden');
-			}
-			else
-			{
-				this.hidden = this.getConfig('hidden');
-			}
-
 			if(this.param.has('random'))
 			{
 				this.random = this.param.get('random');
@@ -233,6 +224,9 @@ class Erase extends Quant
 		this.add = Erase.simulate;
 
 		//
+		this.intro();
+
+		//
 		this.findFiles(this.path);
 	}
 
@@ -246,11 +240,6 @@ class Erase extends Quant
 
 			var p; for(var i = 0; i < _files.length; ++i)
 			{
-				if(!this.hidden && _files[i].name[0] === '.')
-				{
-					continue;
-				}
-
 				p = path.join(_path, _files[i].name);
 
 				if(_files[i].isSymbolicLink())
@@ -295,12 +284,6 @@ class Erase extends Quant
 
 	prepare()
 	{
-		if(Erase.simulate !== null)
-		{
-			console.error('Everything\'s just ' +
-				'simulated'.bold(true).warn(true) + '!');
-		}
-		
 		if(this.found.files === 0 &&
 			this.found.links === 0 &&
 			this.found.directories === 1)
@@ -314,14 +297,16 @@ class Erase extends Quant
 		}
 		else
 		{
-			console.warn('Entry point: ' +
-				this.path.bold(true).info(true));
+			console.info(('Entry point: ' +
+				this.path.warn(true).
+				inverse(true)).bold(true));
 			console.eol();
 		}
 
 		this.size = Math.size.styled(
 			this.bytes).error(true) + (this.bytes >= 1024 ?
-				(' (' + this.bytes.toLocaleString() + ' Bytes)').debug(true) : '');
+				(' (' + this.bytes.toLocaleString() + ' Bytes)').
+					warn(true) : '');
 		this.max[2] = this.size.textLength;
 
 		console.info('Found ' + this.found.files.toLocaleString().
@@ -369,7 +354,10 @@ class Erase extends Quant
 		return (this.list.length === 0 && this.open.length === 0 && this.active === 0);
 	}
 
-	deleteFiles(_callback)
+	//
+	// one of these had a bug .. btw.
+	//
+	/*deleteFiles(_callback)
 	{
 		if(this.LIST.length === 0)
 		{
@@ -383,7 +371,7 @@ class Erase extends Quant
 		const callback = (_file) => {
 			++this.done; this.status(_file);
 			if(--rest <= 0) _callback(); };
-		this.s = 'u'; this.done = 0;
+		this.s = 'files'; this.done = 0;
 
 		var add = Erase.simulate; for(var i = 0; i < this.LIST.length; ++i)
 		{
@@ -414,7 +402,7 @@ class Erase extends Quant
 		const callback = (_link) => {
 			++this.done; this.status(_link);
 			if(--rest <= 0) _callback(); };
-		this.s = 'l'; this.done = 0;
+		this.s = 'links'; this.done = 0;
 		
 		var add = Erase.simulate; for(var i = 0; i < this.links.length; ++i)
 		{
@@ -441,7 +429,7 @@ class Erase extends Quant
 		const callback = (_dir) => {
 			++this.done; this.status(_dir);
 			if(--rest <= 0) _callback(); };
-		this.s = 'd'; this.done = 0;
+		this.s = 'directories'; this.done = 0;
 
 		var add = Erase.simulate; for(var i = 0; i < this.directories.length; ++i)
 		{
@@ -456,14 +444,25 @@ class Erase extends Quant
 				if(_err) throw _err;
 				callback(dir); });
 		}
-	}
+	}*/
 	
-	//
-	//TODO/SYNC (see .parallel!!): .. setTimeout() w/ simulation
 	//
 	finish()
 	{
-		console.info(EOL +
+		//
+		console.info(EOL + 'Now we\'re removing the whole directory structure' +
+			' (with all files etc. in it).');
+	
+		if(Erase.simulate === null)
+		{
+			fs.rmSync(this.path, {
+				recursive: true });
+		}
+	
+		console.warn('Done.'.bold(true) + EOL);
+		return this.summary();
+
+		/*console.info(EOL +
 			'Now we\'re truncating each file to zero length.' +
 				EOL);
 		
@@ -475,7 +474,7 @@ class Erase extends Quant
 				this.deleteFiles(() => {
 					this.deleteDirectories(() => {
 						this.summary(); }); }); }); };
-		this.s = 't'; this.done = 0;
+		this.s = 'files'; this.done = 0;
 
 		var add = Erase.simulate; for(var i = 0; i < this.LIST.length; ++i)
 		{
@@ -489,7 +488,7 @@ class Erase extends Quant
 			else fs.truncate(file, 0, (_err) => {
 				if(_err) throw _err;
 				callback(file); });
-		}
+		}*/
 	}
 
 	summary()
@@ -503,21 +502,20 @@ class Erase extends Quant
 			console.info('Erased ' + this.files.toLocaleString().
 				warn(true).bold(true) + ' files: ' +
 					Math.size.styled(this.bytes).error(true) + add);
-			if(this.links.length > 0) console.info('And we also unlinked ' +
-				this.links.length.toLocaleString().bold(true).warn(true) +
-				' symbolic links.');
 			console.info('Removed the whole structure below entry point: ' +
 				this.found.directories.toLocaleString().bold(true).warn(true) +
 				' directories.');
-			console.error('Entry point was: ' +
-				this.path.warn(true));
 		}
 		else
 		{
-			console.warn('No files erased.');
+			console.warn(EOL + 'No files erased.'.bold(true));
 		}
 
-		console.eol();
+		if(this.found.links > 0) console.debug('There were ' +
+			this.found.links.toLocaleString().bold(true).info(true) +
+			' symbolic links (which are gone now).');
+		console.info(EOL + 'Entry point was: ' +
+			this.path.error(true).inverse(true));
 
 		//
 		return this.destroy();
@@ -527,16 +525,13 @@ class Erase extends Quant
 	{
 		var result = path.relative(this.path, _file);
 		const used = (this.max[0] + this.max[2] +
-			Erase.getPercentMax(DEFAULT_ROUND) + 4);
+			Erase.getPercentMax(DEFAULT_ROUND) + result.length);
+		const diff = (used - console.width);
+		const add = '... ';
 
-		var sub = 0; while((result.length - sub) > console.width)
+		if(diff > 0)
 		{
-			++sub;
-		}
-
-		if(sub > 0)
-		{
-			result = result.substr(sub);
+			result = result.substr(diff);
 		}
 
 		const idx = result.lastIndexOf(path.sep);
@@ -550,6 +545,11 @@ class Erase extends Quant
 		else
 		{
 			result = result.info(true);
+		}
+
+		if(diff > 0)
+		{
+			result = add.defaultFG(true) + result;
 		}
 
 		if(!result.textLength)
@@ -596,21 +596,81 @@ class Erase extends Quant
 	//
 	get progress()
 	{
-		var from; if(this.s === 'd') from = this.found.directories;
-		else if(this.s === 'l') from = this.found.links;
-		else if(this.s === 't') from = this.found.files;
-		else if(this.s === 'u') from = this.found.files;
-		else from = this.bytes;
-		const percent = Math.round(this.done / from * 100,
-			DEFAULT_ROUND);
+		const from = this.found[this.s];
+		const percent = Math.round(this.done / from * 100, DEFAULT_ROUND);
 		return (percent.toFixed(DEFAULT_ROUND).padStart(Erase.
 			getPercentMax(DEFAULT_ROUND), ' ')).info(true) +
 				'%'.error(true) + String.none();
 	}
 	
-	info()
+	static get parameters()
 	{
-		console.dir("info()");
+		return [
+			[ 'Random data', 'random' ],
+			[ 'Iterations', 'iterations' ],
+			[ 'Parallel writes', 'parallel' ],
+			[ 'Buffer/chunk size', 'buffer' ]
+		];
+	}
+
+	intro()
+	{
+		//
+		console.error('WARNING: Flash/SSD drives could cause less security!'
+			.bold(true));
+
+		//
+		if(Erase.simulate !== null)
+                {
+			console.error(('And everything\'s just ' +
+				'simulated'.warn(true)).bold(true) +
+				(' (see ' + 'DEFAULT_SIMULATE'.warn(true) + ')').
+					debug(true) + '!'.bold(true));
+                }
+		
+		//
+		console.debug(EOL + '\t' + 'Parameters'.underline(true) + ':' + EOL);
+		const param = Erase.parameters; var maxKeyLength = 0, len, pa;
+
+		for(const p of param)
+		{
+			if((len = p[0].length) > maxKeyLength)
+			{
+				maxKeyLength = len;
+			}
+		}
+
+		for(const p of param)
+		{
+			if(bool(pa = this[p[1]]))
+			{
+				pa = pa.toString(true);
+			}
+			else if(numeric(pa, true, false))
+			{
+				pa = pa.toLocaleString().warn(true);
+
+				if(p[1] === 'buffer' && this.buffer >= 1024)
+				{
+					pa += ' ('.debug(true) +
+						Math.size.styled(this.buffer).
+							error(true) +
+						')'.debug(true);
+				}
+			}
+			else
+			{
+				pa = pa.warn(true);
+			}
+
+			console.debug(
+				('['.faint(true) + p[0].bold(true) +
+					']'.faint(true)).pad(
+						maxKeyLength + 2, ' ', true) +
+				' ' + pa.bold(true));
+		}
+
+		console.eol();
 	}
 
 	//
@@ -634,7 +694,7 @@ class Erase extends Quant
 			size: Math.size.styled(stat.size).error(true) +
 				(stat.size >= 1024 ? (' (' +
 					stat.size.toLocaleString() + ' Bytes)').
-						debug(true) : '') };
+						warn(true) : '') };
 
 		var len;
 
@@ -654,14 +714,18 @@ class Erase extends Quant
 	erase()
 	{
 		//
+		if(this.found.files === 0)
+		{
+			return this.finish();
+		}
+
+		//
 		this.open = [];
 		this.active = 0;
 
 		//
 		const callback = (_file) => {
-			++this.files;
-			if(!this.bytes) ++this.done;
-			this.done += _file.bytes;
+			++this.files; ++this.done;
 			this.status(_file);
 			return setImmediate(() => {
 				if(this.fin) this.finish();
@@ -669,7 +733,7 @@ class Erase extends Quant
 			});
 		};
 
-		if(!this.bytes) this.s = 'u';
+		this.s = 'files';
 
 		const openFiles = () => { var file;
 			while(this.active < this.parallel && this.list.length > 0)
@@ -679,7 +743,7 @@ class Erase extends Quant
 				if(Erase.simulate === null)
 				{
 					file.handle = fs.openSync(
-						file.path, 'r+', 0o600);
+						file.path, 'rs+', 0o600);
 					this.open.push(file);
 				}
 				else

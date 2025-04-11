@@ -3,9 +3,6 @@
 	/* the usual global switch */
 	"enabled": true,
 
-	/* normally you should also handle hidden/dot files (`.` prefixed); */
-	"hidden": true,
-
 	/* random bytes (via 'crypto.randomBytes')?
 		otherwise only \0 bytes are used. */
 	"random": true,
@@ -17,7 +14,7 @@
 	/* *not* threads, but w/ ASYNC operations we can open more files in "parallel" .. */
 	"parallel": 8,
 
-	/* how many bytes reverse and write in each step? */
-	"buffer": 64000000
+	/* how many bytes reverse and write in each write() step, etc..? */
+	"buffer": 33554432
 
 }

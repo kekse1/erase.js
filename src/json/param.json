@@ -26,9 +26,5 @@
 	"buffer": {
 		"type": "integer",
 		"required": false
-	},
-	"hidden": {
-		"type": "boolean",
-		"required": false
 	}
 }
