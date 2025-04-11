@@ -473,9 +473,9 @@ class Erase extends Quant
 		//
 		if(!this.delete)
 		{
-			console.warn('Due to ' + '--delete'.error(true) + ', we do ' +
+			console.warn(('Due to ' + '--delete'.error(true) + ', we do ' +
 				'not'.underline(true) +
-				' delete the whole thing..!' + EOL);
+				' delete the whole thing..!').bold(true) + EOL);
 			return this.summary();
 		}
 
