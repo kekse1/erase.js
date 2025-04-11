@@ -7,6 +7,7 @@
 const DEFAULT_PARAM_SCHEME_JSON = '../../json/param/erase.json';
 const DEFAULT_CODE = null;//'erase!';
 const DEFAULT_SIMULATE = 120;//(int>0) for setTimeout();
+const DEFAULT_ROUND = 2;
 
 //
 import Application from '../shared/app.js';
@@ -207,11 +208,7 @@ class Erase extends Quant
 		//
 		//todo/ganz zuerst hinweis wg ssd/flash/...
 		//todo/erst infos ueber aktuelle optionen (w/ .buffer @ math.size...);
-		//todo/etc. ... bedenke:
-		//	(b) .parallel wg. async open files
-		//	(c) .iterations etc.. w/ *status*, etc.,
-		//	(d) WICHTIG: ZWEIFACH PROMPT (YES/NO && '!erase')!!1
-		//	(d) etc. pp..
+		//todo/etc. ... bedenke: .iterations etc.. w/ *status*, etc.,
 		//
 
 		//
@@ -323,7 +320,7 @@ class Erase extends Quant
 		}
 
 		this.size = Math.size.styled(
-			this.bytes) + (this.bytes >= 1024 ?
+			this.bytes).error(true) + (this.bytes >= 1024 ?
 				(' (' + this.bytes.toLocaleString() + ' Bytes)').debug(true) : '');
 		this.max[2] = this.size.textLength;
 
@@ -372,6 +369,37 @@ class Erase extends Quant
 		return (this.list.length === 0 && this.open.length === 0 && this.active === 0);
 	}
 
+	deleteFiles(_callback)
+	{
+		if(this.LIST.length === 0)
+		{
+			return _callback;
+		}
+
+		console.info(EOL + 'We delete the ' + this.found.files.toLocaleString().
+			bold(true).error(true) + ' files now. ..' + EOL);
+
+		var rest = this.LIST.length;
+		const callback = (_file) => {
+			++this.done; this.status(_file);
+			if(--rest <= 0) _callback(); };
+		this.s = 'u'; this.done = 0;
+
+		var add = Erase.simulate; for(var i = 0; i < this.LIST.length; ++i)
+		{
+			const file = this.LIST[i].path;
+
+			if(add)
+			{
+				setTimeout(() => callback(file), add);
+				add += Erase.simulate;
+			}
+			else fs.unlink(file, (_err) => {
+				if(_err) throw _err;
+				callback(file); });
+		}
+	}
+
 	deleteSymlinks(_callback)
 	{
 		if(this.links.length === 0)
@@ -379,9 +407,8 @@ class Erase extends Quant
 			return _callback();
 		}
 
-		console.eol();
-		console.info('Now deleting ' + this.found.links.toLocaleString().
-			bold(true).info(true) + ' symbolic links ' + '...' + EOL);
+		console.info(EOL + 'Now deleting ' + this.found.links.toLocaleString().
+			bold(true).error(true) + ' symbolic links. ...' + EOL);
 
 		var rest = this.links.length;
 		const callback = (_link) => {
@@ -408,8 +435,7 @@ class Erase extends Quant
 	{
 		console.info(EOL + 'Last but not least we\'re deleting ' +
 			this.directories.length.toLocaleString().
-			bold(true).warn(true) + ' directories now.' + EOL);
-
+			bold(true).error(true) + ' directories now.' + EOL);
 
 		var rest = this.directories.length;
 		const callback = (_dir) => {
@@ -446,8 +472,9 @@ class Erase extends Quant
 			++this.done; this.status(_file);
 			if(--rest > 0) return;
 			this.deleteSymlinks(() => {
-				this.deleteDirectories(() => {
-					this.summary(); }); }); };
+				this.deleteFiles(() => {
+					this.deleteDirectories(() => {
+						this.summary(); }); }); }); };
 		this.s = 't'; this.done = 0;
 
 		var add = Erase.simulate; for(var i = 0; i < this.LIST.length; ++i)
@@ -498,20 +525,39 @@ class Erase extends Quant
 
 	getFileString(_file)
 	{
-		if(_file.text.startsWith('.../'))
+		var result = path.relative(this.path, _file);
+		const used = (this.max[0] + this.max[2] +
+			Erase.getPercentMax(DEFAULT_ROUND) + 4);
+
+		var sub = 0; while((result.length - sub) > console.width)
 		{
-			return _file;
+			++sub;
 		}
 
-		const dir = path.dirname(_file);
-		_file = path.basename(_file);
-
-		if(dir !== '.' && dir !== this.path)
+		if(sub > 0)
 		{
-			return '.../'.faint(true) + _file;
+			result = result.substr(sub);
 		}
 
-		return _file;
+		const idx = result.lastIndexOf(path.sep);
+
+		if(idx > -1)
+		{
+			const dir = result.substr(0, idx + 1);
+			const file = result.substr(idx + 1);
+			result = dir.debug(true) + file.info(true);
+		}
+		else
+		{
+			result = result.info(true);
+		}
+
+		if(!result.textLength)
+		{
+			result = '.'.info(true);
+		}
+
+		return result;
 	}
 
 	//
@@ -521,7 +567,6 @@ class Erase extends Quant
 
 		if(string(_file))
 		{
-			_file = this.getFileString(_file);
 			return process.stdout.write('['.faint(true) + this.progress +
 				']'.faint(true) + ' ' + _ansi +
 				this.getFileString(_file) + String.none() + EOL);
@@ -534,7 +579,7 @@ class Erase extends Quant
 					String.none() + EOL);
 	}
 
-	static getPercentMax(_round = 2)
+	static getPercentMax(_round = DEFAULT_ROUND)
 	{
 		var result = 3;
 		
@@ -556,9 +601,11 @@ class Erase extends Quant
 		else if(this.s === 't') from = this.found.files;
 		else if(this.s === 'u') from = this.found.files;
 		else from = this.bytes;
-		const percent = Math.round(this.done / from * 100, 2);
-		return (percent.toFixed(2).padStart(Erase.getPercentMax(2), ' ')).
-			info(true) + '%'.error(true) + String.none();
+		const percent = Math.round(this.done / from * 100,
+			DEFAULT_ROUND);
+		return (percent.toFixed(DEFAULT_ROUND).padStart(Erase.
+			getPercentMax(DEFAULT_ROUND), ' ')).info(true) +
+				'%'.error(true) + String.none();
 	}
 	
 	info()
@@ -582,21 +629,23 @@ class Erase extends Quant
 		this.bytes += stat.size;
 		
 		const result = {
-			path: _path,
-			//relative: path.relative(this.path, _path),
-			string: this.getFileString(_path),
+			path: _path, string: this.getFileString(_path),
 			stat, bytes: stat.size,
-			size: Math.size.styled(stat.size) + (stat.size >= 1024 ?
-				(' (' + stat.size.toLocaleString() + ' Bytes)').debug(true) : '') };
+			size: Math.size.styled(stat.size).error(true) +
+				(stat.size >= 1024 ? (' (' +
+					stat.size.toLocaleString() + ' Bytes)').
+						debug(true) : '') };
 
-		if(result.string.length > this.max[0])
+		var len;
+
+		if((len = result.string.textLength) > this.max[0])
 		{
-			this.max[0] = result.string.length;
+			this.max[0] = len;
 		}
 
-		if(result.size.textLength > this.max[1])
+		if((len = result.size.textLength) > this.max[1])
 		{
-			this.max[1] = result.size.textLength;
+			this.max[1] = len;
 		}
 
 		return result;
