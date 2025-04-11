@@ -280,9 +280,8 @@ class Erase extends Quant
 
 			if(--this.openDirectories <= 0)
 			{
-				this.directories.reverse();
-				this.directories.push(this.path);
 				++this.found.directories;
+				this.directories.unshift(this.path);
 				this.LIST = [ ... this.list ];
 				delete this.openDirectories;
 				this.prepare();
