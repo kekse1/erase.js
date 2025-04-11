@@ -15,6 +15,11 @@
 	"parallel": 8,
 
 	/* how many bytes reverse and write in each write() step, etc..? */
-	"buffer": 33554432
+	"buffer": 33554432,
+
+	/* if this is (false), we're only overwriting files.
+		.. leaving their original sizes, all symbolic links etc.
+		and the whole directory structure. ... */
+	"delete": false
 
 }

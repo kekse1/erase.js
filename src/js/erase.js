@@ -143,6 +143,15 @@ class Erase extends Quant
 				this.buffer = this.getConfig('buffer');
 			}
 
+			if(this.param.has('delete'))
+			{
+				this.delete = this.param.get('delete');
+			}
+			else
+			{
+				this.delete = this.getConfig('delete');
+			}
+
 			//
 			if(this.iterations < 1)
 			{
@@ -215,7 +224,9 @@ class Erase extends Quant
 		this.found = {
 			files: 0,
 			directories: 0,
-			links: 0 };
+			links: 0,
+			other: 0
+		};
 		this.done = 0;
 		this.bytes = 0;
 		this.size = null;
@@ -260,6 +271,10 @@ class Erase extends Quant
 						++this.found.files;
 						this.list.push(p);
 					}
+				}
+				else
+				{
+					++this.found.other;
 				}
 			}
 
@@ -316,6 +331,9 @@ class Erase extends Quant
 			this.size.error(true));
 		if(this.found.links > 0) console.info('Additionally there are also ' +
 			this.found.links.toLocaleString().warn(true).bold(true) + ' symbolic links.' + EOL);
+		if(this.found.other > 0) console.info('Plus ' +
+			this.found.other.toLocaleString().bold(true).warn(true) +
+			' other entries..');
 
 		//
 		//todo/prompt (two times, w/ entry directory showing!);
@@ -450,7 +468,19 @@ class Erase extends Quant
 	finish()
 	{
 		//
-		console.info(EOL + 'Now we\'re removing the whole directory structure' +
+		console.eol();
+
+		//
+		if(!this.delete)
+		{
+			console.warn('Due to ' + '--delete'.error(true) + ', we do ' +
+				'not'.underline(true) +
+				' delete the whole thing..!' + EOL);
+			return this.summary();
+		}
+
+		//
+		console.info('Now we\'re removing the whole directory structure' +
 			' (with all files etc. in it).');
 	
 		if(Erase.simulate === null)
@@ -514,6 +544,9 @@ class Erase extends Quant
 		if(this.found.links > 0) console.debug('There were ' +
 			this.found.links.toLocaleString().bold(true).info(true) +
 			' symbolic links (which are gone now).');
+		if(this.found.other > 0) console.debug('Plus ' +
+			this.found.other.toLocaleString().bold(true).error(true) +
+			' other entries..');
 		console.info(EOL + 'Entry point was: ' +
 			this.path.error(true).inverse(true));
 
@@ -606,6 +639,7 @@ class Erase extends Quant
 	static get parameters()
 	{
 		return [
+			[ 'Delete everything', 'delete' ],
 			[ 'Random data', 'random' ],
 			[ 'Iterations', 'iterations' ],
 			[ 'Parallel writes', 'parallel' ],
@@ -616,16 +650,16 @@ class Erase extends Quant
 	intro()
 	{
 		//
-		console.error('WARNING: Flash/SSD drives could cause less security!'
-			.bold(true));
+		console.error(('WARNING'.inverse(true) + ': Flash/SSD drives could cause less security!'
+			.bold(true)).underline(true));
 
 		//
 		if(Erase.simulate !== null)
                 {
-			console.error(('And everything\'s just ' +
+			console.error((('And everything\'s just ' +
 				'simulated'.warn(true)).bold(true) +
 				(' (see ' + 'DEFAULT_SIMULATE'.warn(true) + ')').
-					debug(true) + '!'.bold(true));
+					debug(true) + '!'.bold(true)).underline(true));
                 }
 		
 		//

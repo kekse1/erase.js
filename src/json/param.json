@@ -26,5 +26,9 @@
 	"buffer": {
 		"type": "integer",
 		"required": false
+	},
+	"delete": {
+		"type": "boolean",
+		"required": false
 	}
 }
