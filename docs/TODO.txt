@@ -19,9 +19,10 @@
 
 		# auch in den 'config.json', AS USUAL(!)!
 
-		# da atm durch zaehlung der dateien...
+		# da atm durch zaehlung der dateien (ist wichtig wg. null-size-files!!):
 
 !!!			# .. JE DATEI EIN PROGRESS BASIEREND AUF REAL SIZEs!!
 
 !				# sprich, ein haupt- und n(.parallel) sub-progress-bars
+
 
