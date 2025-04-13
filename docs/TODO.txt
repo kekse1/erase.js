@@ -1,0 +1,27 @@
+
+!111	# loesung insecure ssd/flash?!!?
+
+	# traverse w/ _depth .. nur um das mit anzuzeigen!
+
+		# generell *muss* *jede* tiefe..
+
+	# teste w/ '--random'!1 ... => sollte gut funktionieren!
+
+	# 'getfilestring()' cut: nochmal testen @ console.width's ..
+
+	# '--iterations'
+
+		# fs.close+open in each iteration
+
+		# d.h. auch ein objekt { path: (n) } zu verwalten..
+
+	@ '.status()': bitte eine progress-bar mit dazu!11
+
+		# auch in den 'config.json', AS USUAL(!)!
+
+		# da atm durch zaehlung der dateien...
+
+!!!			# .. JE DATEI EIN PROGRESS BASIEREND AUF REAL SIZEs!!
+
+!				# sprich, ein haupt- und n(.parallel) sub-progress-bars
+

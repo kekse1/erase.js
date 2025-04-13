@@ -4,9 +4,6 @@
 
 # Erase.js
 
-> [!NOTE]
-> The latest upload **theoretically** works.. finally.
-
 The plan is to wipe all the [**Termux Linux**](https://termux.dev/) files
 on my smartphone (more/less) securely.. by traversing a directory and
 overwriting all files with exactly the same amount of `\0` or random bytes.
@@ -19,17 +16,18 @@ Without jailbreak there's no `dd` available, which is my regular tool for this.
 <br>
 
 ## News
+* \[**2025-04-13**\] It should work well now.. but there's still a tiny [`TODO.txt`](#todo)
 * \[**2025-04-09**\] Created this repository (I'm already working on this tool, right now);
 
 <br>
 
 ## Download
-* [**`./src/js/`**](src/js/) (updated **2025-04-10**);
+* [**`./src/js/`**](src/js/) (updated **2025-04-13**);
 * [**`./src/sh/`**](src/sh/) (published **2025-04-09**);
 
 ### Parameters and Configuration
-* [**`param.json`**](src/json/param.json) (updated **2025-04-10**);
-* [**`config.json`**](src/json/config.json) (updated **2025-04-10**);
+* [**`param.json`**](src/json/param.json) (updated **2025-04-13**);
+* [**`config.json`**](src/json/config.json) (updated **2025-04-13**);
 
 <br>
 
@@ -39,6 +37,9 @@ This project is also based on some base implementation which is currently not av
 
 The reason I made this one public is to provide you some example code you could use.
 Or feel free to create a full fledged version out of this one.
+
+## TODO
+There's one little [**`TODO.txt`**](docs/TODO.txt) for this (sub-)project.
 
 <br><br>
 

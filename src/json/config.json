@@ -20,6 +20,41 @@
 	/* if this is (false), we're only overwriting files.
 		.. leaving their original sizes, all symbolic links etc.
 		and the whole directory structure. ... */
-	"delete": false
+	"delete": false,
+
+	/* .. what you see is what you get. */
+	"interface": {
+	
+		/* likely the same like in all my other sub-projects..  */
+		"progress": {
+		
+			"ansi": true,
+			
+			"ob": "(",
+			"cb": ")",
+			
+			"done": {
+
+				/* if(!ansi) only, otherwise empty/space. */
+				"char": "#",
+
+				/* colors, if(ansi)! */
+				"bg": [ 230, 200, 60 ],
+				"fg": [ 0, 0, 0 ]
+
+			},
+
+			"todo": {
+
+				"char": "-",
+
+				"bg": [ 30, 70, 130 ],
+				"fg": [ 255, 255, 255 ]
+
+			}
+
+		}
+		
+	}
 
 }

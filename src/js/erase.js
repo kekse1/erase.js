@@ -206,12 +206,6 @@ class Erase extends Quant
 	start()
 	{
 		//
-		//todo/ganz zuerst hinweis wg ssd/flash/...
-		//todo/erst infos ueber aktuelle optionen (w/ .buffer @ math.size...);
-		//todo/etc. ... bedenke: .iterations etc.. w/ *status*, etc.,
-		//
-
-		//
 		process.stdin.resume();
 
 		//
@@ -334,9 +328,6 @@ class Erase extends Quant
 			this.found.other.toLocaleString().bold(true).warn(true) +
 			' other entries..');
 
-		//
-		//todo/prompt (two times, w/ entry directory showing!);
-		//if NOT accepted, `return false` (w/ rejection info)!
 		//
 		console.confirm('Do you really want to continue'.error(true),
 			(_answer) => {
@@ -624,8 +615,6 @@ class Erase extends Quant
 	}
 	
 	//
-	//TODO/WITH(!) progress bar...!1
-	//
 	get progress()
 	{
 		const from = this.found[this.s];
@@ -805,8 +794,6 @@ class Erase extends Quant
 		++this.active;
 		
 		//
-		//todo/*real* status.. BELOW somewhere.. w/ progress; etc.
-		//
 		const finish = () => {
 			if(_file.handle)
 			{
@@ -836,8 +823,6 @@ class Erase extends Quant
 
 		const getSize = () => Math.min(rest, this.buffer);
 
-		//
-		//todo/*real* status - also w progress!1
 		//
 		const writeCallback = (_err, _written, _buffer) => {
 			if(_err)
