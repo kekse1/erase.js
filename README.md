@@ -16,18 +16,19 @@ Without jailbreak there's no `dd` available, which is my regular tool for this.
 <br>
 
 ## News
+* \[**2025-04-14**\] Nearly finished.. the `--iterations` is now also ready.
 * \[**2025-04-13**\] It should work well now.. but there's still a tiny [`TODO.txt`](#todo)
 * \[**2025-04-09**\] Created this repository (I'm already working on this tool, right now);
 
 <br>
 
 ## Download
-* [**`./src/js/`**](src/js/) (updated **2025-04-13**);
+* [**`./src/js/`**](src/js/) (updated **2025-04-14**);
 * [**`./src/sh/`**](src/sh/) (published **2025-04-09**);
 
 ### Parameters and Configuration
 * [**`param.json`**](src/json/param.json) (updated **2025-04-13**);
-* [**`config.json`**](src/json/config.json) (updated **2025-04-13**);
+* [**`config.json`**](src/json/config.json) (updated **2025-04-14**);
 
 <br>
 

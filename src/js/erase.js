@@ -6,7 +6,7 @@
 //
 const DEFAULT_PARAM_SCHEME_JSON = '../../json/param/erase.json';
 const DEFAULT_CODE = 'erase!';//(null) disables this. ..
-const DEFAULT_SIMULATE = 96;//(int>0) for setTimeout();
+const DEFAULT_SIMULATE = 60;//(int>0) for setTimeout();
 const DEFAULT_ROUND = 1;
 
 //
@@ -363,98 +363,6 @@ class Erase extends Quant
 	}
 
 	//
-	// one of these had a bug .. btw.
-	//
-	/*deleteFiles(_callback)
-	{
-		if(this.LIST.length === 0)
-		{
-			return _callback;
-		}
-
-		console.info(EOL + 'We delete the ' + this.found.files.toLocaleString().
-			bold(true).error(true) + ' files now. ..' + EOL);
-
-		var rest = this.LIST.length;
-		const callback = (_file) => {
-			++this.done; this.status(_file);
-			if(--rest <= 0) _callback(); };
-		this.s = 'files'; this.done = 0;
-
-		var add = Erase.simulate; for(var i = 0; i < this.LIST.length; ++i)
-		{
-			const file = this.LIST[i].path;
-
-			if(add)
-			{
-				setTimeout(() => callback(file), add);
-				add += Erase.simulate;
-			}
-			else fs.unlink(file, (_err) => {
-				if(_err) throw _err;
-				callback(file); });
-		}
-	}
-
-	deleteSymlinks(_callback)
-	{
-		if(this.links.length === 0)
-		{
-			return _callback();
-		}
-
-		console.info(EOL + 'Now deleting ' + this.found.links.toLocaleString().
-			bold(true).error(true) + ' symbolic links. ...' + EOL);
-
-		var rest = this.links.length;
-		const callback = (_link) => {
-			++this.done; this.status(_link);
-			if(--rest <= 0) _callback(); };
-		this.s = 'links'; this.done = 0;
-		
-		var add = Erase.simulate; for(var i = 0; i < this.links.length; ++i)
-		{
-			const link = this.links[i];
-			
-			if(add)
-			{
-				setTimeout(() => callback(link), add);
-				add += Erase.simulate;
-			}
-			else fs.unlink(link, (_err) => {
-				if(_err) throw _err;
-				callback(link); });
-		}
-	}
-
-	deleteDirectories(_callback)
-	{
-		console.info(EOL + 'Last but not least we\'re deleting ' +
-			this.directories.length.toLocaleString().
-			bold(true).error(true) + ' directories now.' + EOL);
-
-		var rest = this.directories.length;
-		const callback = (_dir) => {
-			++this.done; this.status(_dir);
-			if(--rest <= 0) _callback(); };
-		this.s = 'directories'; this.done = 0;
-
-		var add = Erase.simulate; for(var i = 0; i < this.directories.length; ++i)
-		{
-			const dir = this.directories[i];
-
-			if(add)
-			{
-				setTimeout(() => callback(dir), add);
-				add += Erase.simulate;
-			}
-			else fs.rmdir(dir, { recursive: false }, (_err) => {
-				if(_err) throw _err;
-				callback(dir); });
-		}
-	}*/
-	
-	//
 	finish()
 	{
 		//
@@ -481,34 +389,6 @@ class Erase extends Quant
 	
 		console.warn('Done.'.bold(true) + EOL);
 		return this.summary();
-
-		/*console.info(EOL +
-			'Now we\'re truncating each file to zero length.' +
-				EOL);
-		
-		var rest = this.LIST.length;
-		const callback = (_file) => {
-			++this.done; this.status(_file);
-			if(--rest > 0) return;
-			this.deleteSymlinks(() => {
-				this.deleteFiles(() => {
-					this.deleteDirectories(() => {
-						this.summary(); }); }); }); };
-		this.s = 'files'; this.done = 0;
-
-		var add = Erase.simulate; for(var i = 0; i < this.LIST.length; ++i)
-		{
-			const file = this.LIST[i].path;
-
-			if(add)
-			{
-				setTimeout(() => callback(file), add);
-				add += Erase.simulate;
-			}
-			else fs.truncate(file, 0, (_err) => {
-				if(_err) throw _err;
-				callback(file); });
-		}*/
 	}
 
 	summary()
@@ -548,7 +428,8 @@ class Erase extends Quant
 	{
 		var result = path.relative(this.path, _file);
 		const used = (this.max[0] + this.max[2] +
-			Erase.getPercentMax(DEFAULT_ROUND) + result.length);
+			Erase.getPercentStringMax(DEFAULT_ROUND) +
+			this.getIterationsStringMax() + result.length);
 		const diff = (used - console.width);
 		const add = '... ';
 
@@ -584,25 +465,37 @@ class Erase extends Quant
 	}
 
 	//
-	status(_file, _ansi = String.none())
+	status(_file)
 	{
-		if(_ansi) process.stdout.write(_ansi);
-
-		if(string(_file))
-		{
-			return process.stdout.write('['.faint(true) + this.progress +
-				']'.faint(true) + ' ' + _ansi +
-				this.getFileString(_file) + String.none() + EOL);
-		}
-
+		const iterMax = this.getIterationsStringMax(false);
 		const size = ('\t' + _file.size.warn(true).pad(this.max[1], ' ', true));
-		return process.stdout.write('['.faint(true) + this.progress +
-			']'.faint(true) + ' ' + _ansi + _file.string.pad(
-				this.max[0], ' ', true) + ' ' + size +
-					String.none() + EOL);
+		const iter = (this.iterations > 1 ? (' ('.debug() + _file.iterations.toLocaleString().
+			padStart(iterMax, ' ').bold(true).info(true) + ' / '.debug() +
+			this.iterations.toLocaleString().padStart(iterMax, ' ').
+			bold(true).error(true) + ')'.debug(true)) : '');
+		return process.stdout.write(String.none() + '['.faint(true) +
+			this.progress + ']'.faint(true) + ' ' + String.none() +
+			_file.string.pad(this.max[0], ' ', true) + ' ' +
+			size + iter + String.none() + EOL);
 	}
 
-	static getPercentMax(_round = DEFAULT_ROUND)
+	getIterationsStringMax(_full = true)
+	{
+		if(this.iterations === 1)
+		{
+			return 0;
+		}
+
+		if(!_full)
+		{
+			return this.iterations.toLocaleString().length;
+		}
+
+		const str = this.iterations.toLocaleString();
+		return ((str.length * 2) + 10);
+	}
+
+	static getPercentStringMax(_round = DEFAULT_ROUND)
 	{
 		var result = 3;
 		
@@ -617,10 +510,10 @@ class Erase extends Quant
 	//
 	get progress()
 	{
-		const from = this.found[this.s];
+		const from = (this.found.files * this.iterations);
 		const percent = Math.round(this.done / from * 100, DEFAULT_ROUND);
 		return (percent.toFixed(DEFAULT_ROUND).padStart(Erase.
-			getPercentMax(DEFAULT_ROUND), ' ')).info(true) +
+			getPercentStringMax(DEFAULT_ROUND), ' ')).info(true) +
 				'%'.error(true) + String.none();
 	}
 	
@@ -710,7 +603,7 @@ class Erase extends Quant
 		
 		this.bytes += stat.size;
 		
-		const result = {
+		const result = { iterations: 0,
 			path: _path, string: this.getFileString(_path),
 			stat, bytes: stat.size,
 			size: Math.size.styled(stat.size).error(true) +
@@ -746,35 +639,14 @@ class Erase extends Quant
 		this.active = 0;
 
 		//
-		const callback = (_file) => {
-			++this.files; ++this.done;
-			this.status(_file);
-			return setImmediate(() => {
-				if(this.fin) this.finish();
-				else openFiles();
-			});
-		};
-
-		this.s = 'files';
-
 		const openFiles = () => { var file;
 			while(this.active < this.parallel && this.list.length > 0)
-			{
-				file = this.list.shift();
-
-				if(Erase.simulate === null)
-				{
-					file.handle = fs.openSync(
-						file.path, 'rs+', 0o600);
-					this.open.push(file);
-				}
-				else
-				{
-					file.handle = null;
-				}
-
-				this.write(file, callback);
-			}};
+				this.handle(
+					this.list.shift(),
+					() => setImmediate(() => {
+						if(this.fin) this.finish();
+						else openFiles(); }));
+		};
 		
 		openFiles();
 	}
@@ -789,8 +661,22 @@ class Erase extends Quant
 		return null;
 	}
 
-	write(_file, _callback)
+	handle(_file, _callback)
 	{
+		//
+		if(Erase.simulate === null)
+		{
+			_file.handle = fs.openSync(
+				_file.path, 'rs+', 0o600);
+		}
+		else
+		{
+			_file.handle = null;
+		}
+
+		//
+		this.open.push(_file);
+		++_file.iterations;
 		++this.active;
 		
 		//
@@ -801,9 +687,22 @@ class Erase extends Quant
 				_file.handle = null;
 			}
 
-			--this.active;
+			++this.done; --this.active;
 			this.open.remove(_file);
-			_callback(_file);
+			this.status(_file);
+
+			if(_file.iterations < this.iterations)
+			{
+				setImmediate(() => {
+					this.handle(
+						_file,
+						_callback); });
+			}
+			else
+			{
+				++this.files;
+				_callback(_file);
+			}
 		};
 
 		if(_file.handle === null)
