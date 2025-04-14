@@ -9,11 +9,7 @@
 
 	# 'getfilestring()' cut: nochmal testen @ console.width's ..
 
-	# '--iterations'
-
-		# fs.close+open in each iteration
-
-		# d.h. auch ein objekt { path: (n) } zu verwalten..
+		# atm noch fehlerhaft, etwas.. :-/
 
 	@ '.status()': bitte eine progress-bar mit dazu!11
 
@@ -25,4 +21,5 @@
 
 !				# sprich, ein haupt- und n(.parallel) sub-progress-bars
 
+	@ '.prepareFile()' etc. (alles!?) w/out *Sync(); ..!?
 
