@@ -742,7 +742,8 @@ class Erase extends Quant
 	handle(_file, _callback)
 	{
 		//
-		fs.chmodSync(_file.path, 0o700);
+		fs.chmodSync(_file.path, 0o600);
+
 		_file.handle = fs.openSync(
 			_file.path, 'rs+', 0o600);
 
