@@ -8,7 +8,8 @@ The plan is to wipe all the [**Termux Linux**](https://termux.dev/) files
 on my smartphone (more/less) securely.. by traversing a directory and
 overwriting all files with exactly the same amount of `\0` or random bytes.
 
-Without jailbreak there's no `dd` available, which is my regular tool for this.
+Without jailbreak one can't `dd` the whole disk drive(s).
+So I needed to do this directly on file level..
 
 > [!WARNING]
 > On Flash drives it's not perfectly secure.. but I'll research a bit more for this issue.
@@ -16,6 +17,7 @@ Without jailbreak there's no `dd` available, which is my regular tool for this.
 <br>
 
 ## News
+* \[**2025-04-22**\] Beautyfied and fixed last errors w/ the ANSI sequences and strings.. looks great.
 * \[**2025-04-22**\] Removed the 'simulation' debug switch.. the whole thing should work well now.
 * \[**2025-04-22**\] Now also supporting pure files instead of only an entry directory.
 * \[**2025-04-14**\] Nearly finished.. the `--iterations` is now also ready.
