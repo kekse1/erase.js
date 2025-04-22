@@ -532,13 +532,13 @@ class Erase extends Quant
 		
 		if(idx === -1)
 		{
-			return _string;
+			return _string.warn(true);
 		}
 		
 		const dir = _string.substr(0, idx);
 		const base = _string.substr(idx + 1);
 
-		return (dir + '/' + base.bold(true));
+		return (dir.info(true) + '/' + base.warn(true).bold(true));
 	}
 
 	//
@@ -557,16 +557,18 @@ class Erase extends Quant
 
 		if(_file.string.length < left)
 		{
-			file = _file.string;
-			file += ('.'.repeat(left - file.length)).bold(true).faint(true);
+			file = Erase.beautifyFileString(_file.string);
+			file += String.none() + ('.'.repeat(left - file.textLength)).
+				bold(true).faint(true);
 		}
 		else
 		{
 			left -= 3;
-			file = '...'.bold(true) + _file.string.substr(_file.string.length - left);
+			file = '...' + Erase.beautifyFileString(
+				_file.string.substr(_file.string.length - left));
 		}
 
-		const result = progress + ' ' + Erase.beautifyFileString(file) + ' ' + size + ' ' + iterations;
+		const result = progress + ' ' + file + ' ' + size + ' ' + iterations;
 		process.stdout.write(result + EOL);
 		return result;
 	}
