@@ -523,15 +523,22 @@ class Erase extends Quant
 			result = path.relative(process.cwd(), _file);
 		}
 		
-		const base = path.basename(_file);
+		return result;
+	}
+	
+	static beautifyFileString(_string)
+	{
+		const idx = _string.lastIndexOf(path.sep);
 		
-		if(result.endsWith('/' + base))
+		if(idx === -1)
 		{
-			result = result.substr(0, result.length - base.length - 1);
-			result += '/' + base.bold(true);
+			return _string.bold(true);
 		}
 		
-		return result;
+		const dir = _string.substr(0, idx);
+		const base = _string.substr(idx + 1);
+
+		return (dir + '/' + base.bold(true));
 	}
 
 	//
@@ -544,24 +551,22 @@ class Erase extends Quant
 		const iterations = (this.iterations <= 1 ? '' : '(' +
 			_file.iterations.toLocaleString().bold(true).info(true) +
 			' / ' + this.iterations.toLocaleString().bold(true).error(true) + ')');
-		var file;
 		const sum = (progress.textLength + 1 + size.textLength + 1 + iterations.textLength + 1);
 		var left = (console.width - sum);
+		var file;
 
-		if(left > this.max.file)
+		if(_file.string.length < left)
 		{
-			file = _file.string.pad(this.max.file, ' ', true);
+			file = _file.string;
+			file += '.'.bold(true).faint(true).repeat(left - file.length);
 		}
 		else
 		{
-			const add = '...';
-			left -= add.length;
-			file = _file.string.substr(_file.string.textLength - left);
-			file = add.bold(true).debug(true) + file.defaultFG(true);
-			left -= file.textLength;
+			left -= 3;
+			file = '...'.bold(true) + _file.string.substr(_file.string.length - left);
 		}
-		
-		const result = progress + ' ' + file + ' ' + size + ' ' + iterations;
+
+		const result = progress + ' ' + Erase.beautifyFileString(file) + ' ' + size + ' ' + iterations;
 		process.stdout.write(result + EOL);
 		return result;
 	}
@@ -689,8 +694,8 @@ class Erase extends Quant
 			stat, bytes: stat.size,
 			size: Math.size.styled(stat.size).debug(true) +
 				(stat.size >= 1024 ? (' (' +
-					stat.size.toLocaleString() + ' Bytes)').
-						debug(true).faint(true) : '') };
+					stat.size.toLocaleString().bold(true) + ' Bytes)'.faint(true)).
+						defaultFG(true).faint(true) : '') };
 
 		var len;
 
