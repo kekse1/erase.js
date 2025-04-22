@@ -16,6 +16,7 @@ Without jailbreak there's no `dd` available, which is my regular tool for this.
 <br>
 
 ## News
+* \[**2025-04-22**\] Removed the 'simulation' debug switch.. the whole thing should work well now.
 * \[**2025-04-22**\] Now also supporting pure files instead of only an entry directory.
 * \[**2025-04-14**\] Nearly finished.. the `--iterations` is now also ready.
 * \[**2025-04-13**\] It should work well now.. but there's still a tiny [`TODO.txt`](#todo)

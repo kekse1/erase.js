@@ -5,8 +5,7 @@
 
 //
 const DEFAULT_PARAM_SCHEME_JSON = '../../json/param/erase.json';
-const DEFAULT_CODE = 'erase!';//(null) disables this. ..
-const DEFAULT_SIMULATE = null;//(int>0) for setTimeout();
+const DEFAULT_CODE = 'erase!';
 const DEFAULT_ROUND = 1;
 
 //
@@ -255,8 +254,6 @@ class Erase extends Quant
 		this.size = null;
 		this.max = [ 0, 0, 0 ];
 		
-		this.add = Erase.simulate;
-
 		//
 		this.intro();
 
@@ -455,7 +452,7 @@ class Erase extends Quant
 		
 		if(this.found.directories === 0)
 		{
-			if(Erase.simulate === null) for(var i = 0; i < this.LIST.length; ++i)
+			for(var i = 0; i < this.LIST.length; ++i)
 			{
 				fs.unlinkSync(
 					this.LIST[i].path);
@@ -466,11 +463,8 @@ class Erase extends Quant
 			console.info('Now we\'re removing the whole directory structure' +
 				' (with all files etc. in it).');
 	
-			if(Erase.simulate === null)
-			{
-				fs.rmSync(this.path, {
-					recursive: true });
-			}
+			fs.rmSync(this.path, {
+				recursive: true });
 		}
 	
 		console.warn('Done.'.bold(true) + EOL);
@@ -531,7 +525,6 @@ class Erase extends Quant
 			Erase.getPercentStringMax(DEFAULT_ROUND) +
 			this.getIterationsStringMax() + result.length);
 		const diff = (used - console.width);
-		const add = '... ';
 
 		if(diff > 0)
 		{
@@ -553,7 +546,7 @@ class Erase extends Quant
 
 		if(diff > 0)
 		{
-			result = add.defaultFG(true) + result;
+			result = '... '.defaultFG(true) + result;
 		}
 
 		if(!result.textLength)
@@ -631,17 +624,9 @@ class Erase extends Quant
 	warning()
 	{
 		//
-		console.error(('WARNING'.inverse(true) + ': Flash/SSD drives could cause less security!'
-			.bold(true)).underline(true));
-
-		//
-		if(Erase.simulate !== null)
-                {
-			console.error((('And everything\'s just ' +
-				'simulated'.warn(true)).bold(true) +
-				(' (see ' + 'DEFAULT_SIMULATE'.warn(true) + ')').
-					debug(true) + '!'.bold(true)).underline(true));
-                }
+		console.error(('WARNING'.inverse(true) + ': ' +
+			'Flash/SSD drives could cause less security!'
+				.bold(true)).underline(true));
 	}
 
 	intro()
@@ -754,28 +739,11 @@ class Erase extends Quant
 		openFiles();
 	}
 
-	static get simulate()
-	{
-		if(int(DEFAULT_SIMULATE) && DEFAULT_SIMULATE > 0)
-		{
-			return DEFAULT_SIMULATE;
-		}
-
-		return null;
-	}
-
 	handle(_file, _callback)
 	{
 		//
-		if(Erase.simulate === null)
-		{
-			_file.handle = fs.openSync(
-				_file.path, 'rs+', 0o600);
-		}
-		else
-		{
-			_file.handle = null;
-		}
+		_file.handle = fs.openSync(
+			_file.path, 'rs+', 0o600);
 
 		//
 		this.open.push(_file);
@@ -807,13 +775,6 @@ class Erase extends Quant
 				_callback(_file);
 			}
 		};
-
-		if(_file.handle === null)
-		{
-			setTimeout(finish, this.add);
-			this.add += Erase.simulate;
-			return false;
-		}
 
 		var position = 0;
 		var rest = _file.bytes;
