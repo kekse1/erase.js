@@ -560,15 +560,15 @@ class Erase extends Quant
 	//
 	status(_file)
 	{
-		const iterMax = this.getIterationsStringMax(false);
-		const size = ('\t' + _file.size.warn(true).pad(this.max[1], ' ', true));
+		const iterMax = (this.getIterationsStringMax(false) - 2);
+		const size = ('\t' + _file.size.warn(true).pad(this.max[1] - 2, ' ', true));
 		const iter = (this.iterations > 1 ? (' ('.debug() + _file.iterations.toLocaleString().
 			padStart(iterMax, ' ').bold(true).info(true) + ' / '.debug() +
 			this.iterations.toLocaleString().padStart(iterMax, ' ').
 			bold(true).error(true) + ')'.debug(true)) : '');
 		return process.stdout.write(String.none() + '['.faint(true) +
 			this.progress + ']'.faint(true) + ' ' + String.none() +
-			_file.string.pad(this.max[0], ' ', true) + ' ' +
+			_file.string.pad(this.max[0] - 2, ' ', true) + ' ' +
 			size + iter + String.none() + EOL);
 	}
 
@@ -742,6 +742,7 @@ class Erase extends Quant
 	handle(_file, _callback)
 	{
 		//
+		fs.chmodSync(_file.path, 0o700);
 		_file.handle = fs.openSync(
 			_file.path, 'rs+', 0o600);
 
@@ -772,6 +773,7 @@ class Erase extends Quant
 			else
 			{
 				++this.files;
+				fs.chmodSync(_file.path, 0o000);
 				_callback(_file);
 			}
 		};
