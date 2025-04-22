@@ -558,7 +558,7 @@ class Erase extends Quant
 		if(_file.string.length < left)
 		{
 			file = _file.string;
-			file += '.'.bold(true).faint(true).repeat(left - file.length);
+			file += ('.'.repeat(left - file.length)).bold(true).faint(true);
 		}
 		else
 		{
