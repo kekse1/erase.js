@@ -532,7 +532,7 @@ class Erase extends Quant
 		
 		if(idx === -1)
 		{
-			return _string.bold(true);
+			return _string;
 		}
 		
 		const dir = _string.substr(0, idx);
