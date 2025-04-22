@@ -252,8 +252,10 @@ class Erase extends Quant
 		this.done = 0;
 		this.bytes = 0;
 		this.size = null;
-		this.max = [ 0, 0, 0 ];
-		
+		this.max = {	percent: Erase.getPercentStringMax(DEFAULT_ROUND),
+				file: 0, size: 0,
+				iterations: this.getIterationsStringMax(true)	};
+
 		//
 		this.intro();
 
@@ -372,7 +374,7 @@ class Erase extends Quant
 			this.bytes).error(true) + (this.bytes >= 1024 ?
 				(' (' + this.bytes.toLocaleString() + ' Bytes)').
 					warn(true) : '');
-		this.max[2] = this.size.textLength;
+		this.max.size = this.size.textLength;
 
 		console.info('Found ' + this.found.files.toLocaleString().
 			warn(true).bold(true) + ' files in ' +
@@ -521,55 +523,47 @@ class Erase extends Quant
 			result = path.relative(process.cwd(), _file);
 		}
 		
-		const used = (this.max[0] + this.max[2] +
-			Erase.getPercentStringMax(DEFAULT_ROUND) +
-			this.getIterationsStringMax() + result.length);
-		const diff = (used - console.width);
-
-		if(diff > 0)
+		const base = path.basename(_file);
+		
+		if(result.endsWith('/' + base))
 		{
-			result = result.substr(diff);
+			result = result.substr(0, result.length - base.length - 1);
+			result += '/' + base.bold(true);
 		}
-
-		const idx = result.lastIndexOf(path.sep);
-
-		if(idx > -1)
-		{
-			const dir = result.substr(0, idx + 1);
-			const file = result.substr(idx + 1);
-			result = dir.debug(true) + file.info(true);
-		}
-		else
-		{
-			result = result.info(true);
-		}
-
-		if(diff > 0)
-		{
-			result = '... '.defaultFG(true) + result;
-		}
-
-		if(!result.textLength)
-		{
-			result = '.'.info(true);
-		}
-
+		
 		return result;
 	}
 
 	//
 	status(_file)
 	{
-		const iterMax = this.getIterationsStringMax(false);
-		const size = ('\t' + _file.size.warn(true).pad(this.max[1], ' ', true));
-		const iter = (this.iterations > 1 ? (' ('.debug() + _file.iterations.toLocaleString().
-			padStart(iterMax, ' ').bold(true).info(true) + ' / '.debug() +
-			this.iterations.toLocaleString().padStart(iterMax, ' ').
-			bold(true).error(true) + ')'.debug(true)) : '');
-		return process.stdout.write(String.none() + '['.faint(true) +
-			this.progress + ']'.faint(true) + ' ' + String.none() +
-			_file.string.pad(this.max[0], ' ', true) + ' ' +
-			size + iter + String.none() + EOL);
+		const progress = '['.faint(true) +
+			this.progress.pad(this.max.percent, ' ', true) +
+			']'.faint(true);
+		var size = _file.size.warn(true).pad(this.max.size, ' ', true);
+		const iterations = (this.iterations <= 1 ? '' : '(' +
+			_file.iterations.toLocaleString().bold(true).info(true) +
+			' / ' + this.iterations.toLocaleString().bold(true).error(true) + ')');
+		var file;
+		const sum = (progress.textLength + 1 + size.textLength + 1 + iterations.textLength + 1);
+		var left = (console.width - sum);
+
+		if(left > this.max.file)
+		{
+			file = _file.string.pad(this.max.file, ' ', true);
+		}
+		else
+		{
+			const add = '...';
+			left -= add.length;
+			file = _file.string.substr(_file.string.textLength - left);
+			file = add.bold(true).debug(true) + file.defaultFG(true);
+			left -= file.textLength;
+		}
+		
+		const result = progress + ' ' + file + ' ' + size + ' ' + iterations;
+		process.stdout.write(result + EOL);
+		return result;
 	}
 
 	getIterationsStringMax(_full = true)
@@ -584,8 +578,7 @@ class Erase extends Quant
 			return this.iterations.toLocaleString().length;
 		}
 
-		const str = this.iterations.toLocaleString();
-		return ((str.length * 2) + 10);
+		return (this.iterations.toLocaleString().length * 2);
 	}
 
 	static getPercentStringMax(_round = DEFAULT_ROUND)
@@ -694,21 +687,16 @@ class Erase extends Quant
 		const result = { iterations: 0,
 			path: _path, string: this.getFileString(_path),
 			stat, bytes: stat.size,
-			size: Math.size.styled(stat.size).error(true) +
+			size: Math.size.styled(stat.size).debug(true) +
 				(stat.size >= 1024 ? (' (' +
 					stat.size.toLocaleString() + ' Bytes)').
-						warn(true) : '') };
+						debug(true).faint(true) : '') };
 
 		var len;
 
-		if((len = result.string.textLength) > this.max[0])
+		if((len = result.string.textLength) > this.max.file)
 		{
-			this.max[0] = len;
-		}
-
-		if((len = result.size.textLength) > this.max[1])
-		{
-			this.max[1] = len;
+			this.max.file = len;
 		}
 
 		return result;

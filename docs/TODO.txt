@@ -23,5 +23,3 @@
 
 	@ '.prepareFile()' etc. (alles!?) w/out *Sync(); ..!?
 
-	# noch ein (va .pad-)darstellungs-fehler bei einigen (relativen) pfaden @ .status();
-
