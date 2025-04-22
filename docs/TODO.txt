@@ -11,7 +11,7 @@
 
 		# atm noch fehlerhaft, etwas.. :-/
 
-	@ '.status()': bitte eine progress-bar mit dazu!11
+!!!1	@ '.status()': bitte eine progress-bar mit dazu!11
 
 		# auch in den 'config.json', AS USUAL(!)!
 
