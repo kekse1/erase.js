@@ -345,24 +345,14 @@ class Erase extends Quant
 	prepare()
 	{
 		if(this.found.files === 0 &&
-			this.found.links === 0)
+			this.found.links === 0 &&
+			this.found.directories === 0)
 		{
-			if(this.found.directories === 0)
-			{
-				console.warn('Nothing for secure erasing found.');
-			}
-			else
-			{
-				console.warn('Nothing for secure erasing found in ' +
-					this.found.directories.toLocaleString().
-						error(true).bold(true) +
-					' directories.');
-			}
-
+			console.warn('Nothing for secure erasing found.');
 			return this.destroy();
-			//process.exit();
 		}
-		else if(pathname(this.path))
+		
+		if(pathname(this.path))
 		{
 			console.info(('Entry point: ' +
 				this.path.warn(true).
@@ -739,8 +729,15 @@ class Erase extends Quant
 		//
 		fs.chmodSync(_file.path, 0o600);
 
-		_file.handle = fs.openSync(
-			_file.path, 'rs+', 0o600);
+		if(_file.bytes > 0)
+		{
+			_file.handle = fs.openSync(
+				_file.path, 'rs+', 0o600);
+		}
+		else
+		{
+			_file.handle = null;
+		}
 
 		//
 		this.open.push(_file);
@@ -757,6 +754,14 @@ class Erase extends Quant
 
 			++this.done; --this.active;
 			this.open.remove(_file);
+
+			if(_file.bytes === 0)
+			{
+				++this.files;
+				fs.chmodSync(_file.path, 0);
+				return _callback(_file);
+			}
+
 			this.status(_file);
 
 			if(_file.iterations < this.iterations)
