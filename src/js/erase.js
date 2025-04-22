@@ -767,7 +767,7 @@ class Erase extends Quant
 			else
 			{
 				++this.files;
-				fs.chmodSync(_file.path, 0o000);
+				fs.chmodSync(_file.path, 0);
 				_callback(_file);
 			}
 		};
