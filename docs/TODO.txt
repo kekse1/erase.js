@@ -23,3 +23,7 @@
 
 	@ '.prepareFile()' etc. (alles!?) w/out *Sync(); ..!?
 
+	@ .status(): EVTL. muss ich den 'substr()' schon @ '.prepareFile()' machen, ..
+
+		# .. da 'substr()' momentan noch ohne ansi escape sequences.
+
