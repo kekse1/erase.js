@@ -779,6 +779,11 @@ class Erase extends Quant
 			}
 		};
 
+		if(!_file.handle)
+		{
+			return finish();
+		}
+
 		var position = 0;
 		var rest = _file.bytes;
 
