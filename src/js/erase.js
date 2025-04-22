@@ -547,15 +547,15 @@ class Erase extends Quant
 
 		if(_file.string.length < left)
 		{
-			file = Erase.beautifyFileString(_file.string);
-			file += String.none() + ('.'.repeat(left - file.textLength)).
-				bold(true).faint(true);
+			file = Erase.beautifyFileString(_file.string) +
+				String.none() + ('.'.repeat(left - _file.string.length)).
+					bold(true).faint(true);
 		}
 		else
 		{
-			left -= 3;
-			file = '...' + Erase.beautifyFileString(
-				_file.string.substr(_file.string.length - left));
+			file = '... ' + Erase.beautifyFileString(
+				_file.string.substr(_file.string.length -
+					(left -= 4)));
 		}
 
 		const result = progress + ' ' + file + ' ' + size + ' ' + iterations;
