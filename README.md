@@ -29,7 +29,7 @@ Without jailbreak there's no `dd` available, which is my regular tool for this.
 
 ### Parameters and Configuration
 * [**`param.json`**](src/json/param.json) (updated **2025-04-13**);
-* [**`config.json`**](src/json/config.json) (updated **2025-04-14**);
+* [**`config.json`**](src/json/config.json) (updated **2025-04-22**);
 
 <br>
 

@@ -9,7 +9,7 @@
 
 	/* amount of overwrite iterations..
 		so with multiple times it *should* be (bit) more secure. */
-	"iterations": 3,
+	"iterations": 4,
 
 	/* *not* threads, but w/ ASYNC operations we can open more files in "parallel" .. */
 	"parallel": 8,
