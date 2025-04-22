@@ -560,15 +560,15 @@ class Erase extends Quant
 	//
 	status(_file)
 	{
-		const iterMax = (this.getIterationsStringMax(false) - 2);
-		const size = ('\t' + _file.size.warn(true).pad(this.max[1] - 2, ' ', true));
+		const iterMax = this.getIterationsStringMax(false);
+		const size = ('\t' + _file.size.warn(true).pad(this.max[1], ' ', true));
 		const iter = (this.iterations > 1 ? (' ('.debug() + _file.iterations.toLocaleString().
 			padStart(iterMax, ' ').bold(true).info(true) + ' / '.debug() +
 			this.iterations.toLocaleString().padStart(iterMax, ' ').
 			bold(true).error(true) + ')'.debug(true)) : '');
 		return process.stdout.write(String.none() + '['.faint(true) +
 			this.progress + ']'.faint(true) + ' ' + String.none() +
-			_file.string.pad(this.max[0] - 2, ' ', true) + ' ' +
+			_file.string.pad(this.max[0], ' ', true) + ' ' +
 			size + iter + String.none() + EOL);
 	}
 
