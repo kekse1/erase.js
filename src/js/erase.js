@@ -350,11 +350,11 @@ class Erase extends Quant
 		{
 			if(this.found.directories === 0)
 			{
-				console.warn('Nothing to secure erase found.');
+				console.warn('Nothing for secure erasing found.');
 			}
 			else
 			{
-				console.warn('Nothing to secure erase found in ' +
+				console.warn('Nothing for secure erasing found in ' +
 					this.found.directories.toLocaleString().
 						error(true).bold(true) +
 					' directories.');
