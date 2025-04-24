@@ -258,7 +258,7 @@ class Erase extends Quant
 		this.max = {	percent: Erase.getPercentStringMax(DEFAULT_ROUND),
 				file: 0, size: 0, iterations: (this.iterations <= 1 ?
 					0 : ((this.iterations.toLocaleString().length *
-						2) + 4)) };
+						2) + 5)) };
 
 		//
 		this.intro();
