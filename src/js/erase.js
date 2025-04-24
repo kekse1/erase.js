@@ -256,9 +256,8 @@ class Erase extends Quant
 		this.bytes = 0;
 		this.size = null;
 		this.max = {	percent: Erase.getPercentStringMax(DEFAULT_ROUND),
-				file: 0, size: 0, iterations: (this.iterations <= 1 ?
-					0 : ((this.iterations.toLocaleString().length *
-						2) + 5)) };
+				file: 0, size: 0, iterations: ((this.iterations.
+					toLocaleString().length * 2) + 4) };
 
 		//
 		this.intro();
@@ -542,10 +541,10 @@ class Erase extends Quant
 			this.progress.pad(this.max.percent, ' ', true) +
 			']'.faint(true).defaultFG(true);
 		var size = _file.size.warn(true).pad(this.max.size, ' ', true);
-		var iterations = (this.iterations <= 1 ? '' : '  ' +
-			_file.iterations.toLocaleString().bold(true).info(true) +
-			' / ' + this.iterations.toLocaleString().bold(true).error(true));
-		if(iterations) iterations = iterations.pad(this.max.iterations, ' ', true);
+		const iterations = (this.iterations <= 1 ? '' : (' ' +
+			(_file.iterations.toLocaleString().bold(true).info(true) +
+			' / ' + this.iterations.toLocaleString().bold(true).error(true)).
+				pad(this.max.iterations, ' ', true) + ' '));
 		const sum = (progress.textLength + 1 +
 			size.textLength + 1 +
 			iterations.textLength + 1);
