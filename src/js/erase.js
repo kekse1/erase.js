@@ -253,8 +253,9 @@ class Erase extends Quant
 		this.bytes = 0;
 		this.size = null;
 		this.max = {	percent: Erase.getPercentStringMax(DEFAULT_ROUND),
-				file: 0, size: 0,
-				iterations: this.getIterationsStringMax(true)	};
+				file: 0, size: 0, iterations: (this.iterations <= 1 ?
+					0 : ((this.iterations.toLocaleString().length *
+						2) + 6))	};
 
 		//
 		this.intro();
@@ -534,22 +535,26 @@ class Erase extends Quant
 	//
 	status(_file)
 	{
-		const progress = '['.faint(true) +
+		const progress = '['.faint(true).defaultFG(true) +
 			this.progress.pad(this.max.percent, ' ', true) +
-			']'.faint(true);
+			']'.faint(true).defaultFG(true);
 		var size = _file.size.warn(true).pad(this.max.size, ' ', true);
-		const iterations = (this.iterations <= 1 ? '' : '(' +
+		var iterations = (this.iterations <= 1 ? '' : '  ' +
 			_file.iterations.toLocaleString().bold(true).info(true) +
-			' / ' + this.iterations.toLocaleString().bold(true).error(true) + ')');
-		const sum = (progress.textLength + 1 + size.textLength + 1 + iterations.textLength + 1);
+			' / ' + this.iterations.toLocaleString().bold(true).error(true));
+		if(iterations) iterations = iterations.pad(this.max.iterations, ' ', true);
+		const sum = (progress.textLength + 1 +
+			size.textLength + 1 +
+			iterations.textLength + 1);
 		var left = (console.width - sum);
 		var file;
 
 		if(_file.string.length < left)
 		{
-			file = Erase.beautifyFileString(_file.string) +
-				String.none() + ('.'.repeat(left - _file.string.length)).
-					bold(true).faint(true);
+			file = Erase.beautifyFileString(_file.string) + ' ' +
+				String.none() + ('.'.repeat(left -
+					_file.string.length - 1)).
+						bold(true).faint(true);
 		}
 		else
 		{
@@ -561,21 +566,6 @@ class Erase extends Quant
 		const result = progress + ' ' + file + ' ' + size + ' ' + iterations;
 		process.stdout.write(result + EOL);
 		return result;
-	}
-
-	getIterationsStringMax(_full = true)
-	{
-		if(this.iterations === 1)
-		{
-			return 0;
-		}
-
-		if(!_full)
-		{
-			return this.iterations.toLocaleString().length;
-		}
-
-		return (this.iterations.toLocaleString().length * 2);
 	}
 
 	static getPercentStringMax(_round = DEFAULT_ROUND)
