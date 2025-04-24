@@ -181,6 +181,9 @@ class Erase extends Quant
 			}
 
 			//
+			console.eol();
+
+			//
 			if(this.iterations < 1)
 			{
 				console.error('Invalid `--iterations`: expecting an Integer above zero.');
