@@ -17,7 +17,7 @@ So I needed to do this directly on file level..
 <br>
 
 ## News
-* \[**2025-04-25**\] 'Finished' this app by calling `fsync` after each iteration.
+* \[**2025-04-25**\] Made this app more secure by calling `fsync` after each iteration.
 * \[**2025-04-22**\] Beautyfied and fixed last errors w/ the ANSI sequences and strings.. looks great.
 * \[**2025-04-22**\] Removed the 'simulation' debug switch.. the whole thing should work well now.
 * \[**2025-04-22**\] Now also supporting pure files instead of only an entry directory.

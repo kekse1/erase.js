@@ -23,3 +23,5 @@
 
 	@ '.prepareFile()' etc. (alles!?) w/out *Sync(); ..!?
 
+	# *alle* argv[] nutzen.. also beliebige und mehrere entry-points *sowie* files *parallel*!1 ;-)
+
