@@ -7,8 +7,10 @@
 const DEFAULT_PARAM_SCHEME_JSON = '../../json/param/erase.json';
 const DEFAULT_PROMPT = 'erase!';
 const DEFAULT_ROUND = 1;
+const DEFAULT_MODE = 0;
 
 //
+import FileSystem from '../shared/fs.js';
 import Application from '../shared/app.js';
 import Parameter from '../shared/param.js';
 import Quant from '../shared/quant.js';
@@ -177,6 +179,34 @@ class Erase extends Quant
 			else
 			{
 				this.delete = this.getConfig('delete');
+			}
+
+			if(this.param.has('chmod'))
+			{
+				if(int(this.param.get('chmod')))
+				{
+					this.chmod = this.param.get('chmod');
+				}
+				else if(this.param.get('chmod'))
+				{
+					this.chmod = DEFAULT_MODE;
+				}
+				else
+				{
+					this.chmod = null;
+				}
+			}
+			else if(int(this.getConfig('chmod')))
+			{
+				this.chmod = this.getConfig('chmod');
+			}
+			else if(this.getConfig('chmod'))
+			{
+				this.chmod = DEFAULT_MODE;
+			}
+			else
+			{
+				this.chmod = null;
 			}
 
 			//
@@ -597,6 +627,7 @@ class Erase extends Quant
 			[ 'Delete everything', 'delete' ],
 			[ 'Random data', 'random' ],
 			[ 'Iterations', 'iterations' ],
+			[ 'Target mode', 'chmod' ],
 			[ 'Parallel writes', 'parallel' ],
 			[ 'Buffer/chunk size', 'buffer' ]
 		];
@@ -632,7 +663,14 @@ class Erase extends Quant
 			}
 			else if(numeric(pa, true, false))
 			{
-				pa = pa.toLocaleString().warn(true);
+				if(p[1] === 'chmod')
+				{
+					pa = FileSystem.renderMode(pa).warn(true);
+				}
+				else
+				{
+					pa = pa.toLocaleString().warn(true);
+				}
 
 				if(p[1] === 'buffer' && this.buffer >= 1024)
 				{
@@ -642,9 +680,21 @@ class Erase extends Quant
 						')'.debug(true);
 				}
 			}
-			else
+			else if(string(pa, true))
 			{
 				pa = pa.warn(true);
+			}
+			else
+			{
+				if(p[1] === 'chmod')
+				{
+					pa = '-/-'.warn(true) + String.none() +
+						' (original modes)'.debug(true).faint(true);
+				}
+				else
+				{
+					throw new Error('Unexpected');
+				}
 			}
 
 			console.debug(
@@ -674,7 +724,7 @@ class Erase extends Quant
 		
 		const result = { iterations: 0,
 			path: _path, string: this.getFileString(_path),
-			stat, bytes: stat.size,
+			stat, bytes: stat.size, mode: stat.mode,
 			size: Math.size.styled(stat.size).debug(true) +
 				(stat.size >= 1024 ? (' (' +
 					stat.size.toLocaleString().bold(true) + ' Bytes)'.faint(true)).
@@ -736,7 +786,8 @@ class Erase extends Quant
 
 				if(_file.handle)
 				{
-					fs.fchmodSync(_file.handle, 0);
+					fs.fchmodSync(_file.handle, (this.chmod === null ?
+						_file.mode : this.chmod));
 					fs.closeSync(_file.handle);
 					_file.handle = null;
 				}

@@ -25,17 +25,5 @@
 
 	# *alle* argv[] nutzen.. also beliebige und mehrere entry-points *sowie* files *parallel*!1 ;-)
 
-	# siehe 'js/shared/fs.js.ORIG.TODO':
-
-		# integrieren in 'fs.js'
-
-		# integrieren @ v4/
-
-		# cfg[chmod] sowie `--chmod`
-
-			# aber immer initiales chmod - nur eben evtl. zurueck setzen danach.
-
-			# `fstat` sollte w/ {mode} passend (original) integer liefern!
-
-				# rest evtl. @ 'fs.js.ORIG.TODO'! ;-)
+	# SCREENSHOT example noch @ github..!
 

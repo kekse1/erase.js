@@ -22,6 +22,11 @@
 		and the whole directory structure. ... */
 	"delete": false,
 
+	/* either a boolean: if file modes should be set to our default (0)
+		or if their original modes should be preserved; or an
+		integer with a target mode for all erased files.. */
+	"chmod": true,
+
 	/* .. what you see is what you get. */
 	"interface": {
 	

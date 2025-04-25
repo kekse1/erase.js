@@ -30,5 +30,9 @@
 	"delete": {
 		"type": "boolean",
 		"required": false
+	},
+	"chmod": {
+		"type": [ "boolean", "integer" ],
+		"required": false
 	}
 }
