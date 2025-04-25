@@ -690,7 +690,7 @@ class Erase extends Quant
 				if(p[1] === 'chmod')
 				{
 					pa = '-/-'.warn(true) + String.none() +
-						' (original modes)'.debug(true).faint(true);
+						' (' + 'leaving originals'.debug(true) + ')';
 				}
 				else
 				{
