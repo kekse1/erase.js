@@ -706,7 +706,7 @@ class Erase extends Quant
 		//
 		const openFiles = () => { var file;
 			while(this.active < this.parallel && this.list.length > 0)
-				this.handle(
+				this.handleFile(
 					this.list.shift(),
 					() => setImmediate(() => {
 						if(this.fin) this.finish();
@@ -716,20 +716,14 @@ class Erase extends Quant
 		openFiles();
 	}
 
-	handle(_file, _callback)
+	handleFile(_file, _callback)
 	{
 		//
 		fs.chmodSync(_file.path, 0o600);
 
-		if(_file.bytes > 0)
-		{
-			_file.handle = fs.openSync(
-				_file.path, 'rs+', 0o600);
-		}
-		else
-		{
-			_file.handle = null;
-		}
+		if(_file.bytes > 0) _file.handle = fs.openSync(
+			_file.path, 'rs+', 0o600);
+		else _file.handle = null;
 
 		//
 		this.open.push(_file);
@@ -738,37 +732,35 @@ class Erase extends Quant
 		
 		//
 		const finish = () => {
-			if(_file.handle)
-			{
-				fs.closeSync(_file.handle);
-				_file.handle = null;
-			}
+			const rest = (_err) => {
+				if(_err) throw new _err;
 
-			++this.done; --this.active;
-			this.open.remove(_file);
+				if(_file.handle)
+				{
+					fs.fchmodSync(_file.handle, 0);
+					fs.closeSync(_file.handle);
+					_file.handle = null;
+				}
+				
+				++this.done; --this.active;
+				this.open.remove(_file);
 
-			if(_file.bytes === 0)
-			{
+				this.status(_file);
+
+				if(_file.bytes > 0 && _file.iterations < this.iterations)
+				{
+					return setImmediate(() => {
+						this.handleFile(
+							_file,
+							_callback); });
+				}
+
 				++this.files;
-				fs.chmodSync(_file.path, 0);
-				return _callback(_file);
-			}
-
-			this.status(_file);
-
-			if(_file.iterations < this.iterations)
-			{
-				setImmediate(() => {
-					this.handle(
-						_file,
-						_callback); });
-			}
-			else
-			{
-				++this.files;
-				fs.chmodSync(_file.path, 0);
 				_callback(_file);
-			}
+			};
+			
+			if(_file.handle) return fs.fsync(_file.handle, rest);
+			return rest(null);
 		};
 
 		if(!_file.handle)
