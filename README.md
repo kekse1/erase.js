@@ -17,6 +17,7 @@ So I needed to do this directly on file level..
 <br>
 
 ## News
+* \[**2025-04-25**\] Now also w/ `--chmod` (plus [config.js](#parameters-and-configuration) change);
 * \[**2025-04-25**\] Made this app more secure by calling `fsync` after each iteration.
 * \[**2025-04-22**\] Beautyfied and fixed last errors w/ the ANSI sequences and strings.. looks great.
 * \[**2025-04-22**\] Removed the 'simulation' debug switch.. the whole thing should work well now.
@@ -32,8 +33,8 @@ So I needed to do this directly on file level..
 * [**`./src/sh/`**](src/sh/) (published **2025-04-09**);
 
 ### Parameters and Configuration
-* [**`param.json`**](src/json/param.json) (updated **2025-04-13**);
-* [**`config.json`**](src/json/config.json) (updated **2025-04-22**);
+* [**`param.json`**](src/json/param.json) (updated **2025-04-25**);
+* [**`config.json`**](src/json/config.json) (updated **2025-04-25**);
 
 <br>
 
