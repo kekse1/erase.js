@@ -473,26 +473,28 @@ class Erase extends Quant
 
 			return this.summary();
 		}
+
+		const fin = () => {
+			console.warn('Done.'.bold(true) + EOL);
+			return this.summary(); };
 		
 		if(this.found.directories === 0)
 		{
+			var rest = this.LIST.length;
+			const cb = (_err) => {
+				if(_err) throw _err;
+				if(--rest <= 0) fin(); };
+			
 			for(var i = 0; i < this.LIST.length; ++i)
-			{
-				fs.unlinkSync(
-					this.LIST[i].path);
-			}
+				fs.unlink(this.LIST[i].path, cb);
 		}
 		else
 		{
 			console.info('Now we\'re removing the whole directory structure' +
 				' (with all files etc. in it).');
-	
-			fs.rmSync(this.path, {
-				recursive: true });
+			fs.rm(this.path, { recursive: true }, (_err) => {
+				if(_err) throw _err; fin(); });
 		}
-	
-		console.warn('Done.'.bold(true) + EOL);
-		return this.summary();
 	}
 
 	summary()
@@ -709,8 +711,6 @@ class Erase extends Quant
 	}
 
 	//
-	//maybe(!!) also w/o '*Sync()'.. see '.parallel' then!
-	//
 	prepareFile(_path)
 	{
 		const stat = fs.statSync(_path, {
@@ -783,7 +783,7 @@ class Erase extends Quant
 		//
 		const finish = () => {
 			const rest = (_err) => {
-				if(_err) throw new _err;
+				if(_err) throw _err;
 
 				if(_file.handle)
 				{
@@ -810,8 +810,8 @@ class Erase extends Quant
 				_callback(_file);
 			};
 			
-			if(_file.handle) return fs.fsync(_file.handle, rest);
-			return rest(null);
+			if(_file.handle) fs.fsync(_file.handle, rest);
+			else rest(null);
 		};
 
 		if(!_file.handle)
