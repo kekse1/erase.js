@@ -23,3 +23,7 @@
 
 	@ '.prepareFile()' etc. (alles!?) w/out *Sync(); ..!?
 
+!!11	# WICHTIG: ein `fsync` noch durchfuehren, nach jeder einzelnen iteration!!1
+
+		# bedenke, dass moeglichst immer async.. btw.
+
