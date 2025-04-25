@@ -5,7 +5,7 @@
 
 //
 const DEFAULT_PARAM_SCHEME_JSON = '../../json/param/erase.json';
-const DEFAULT_CODE = 'erase!';
+const DEFAULT_PROMPT = 'erase!';
 const DEFAULT_ROUND = 1;
 
 //
@@ -388,11 +388,11 @@ class Erase extends Quant
 					return this.destroy(null, true);
 				}
 
-				if(string(DEFAULT_CODE, false)) console.prompt('OK, then '.warn(true) + 'please confirm'.
+				if(string(DEFAULT_PROMPT, false)) console.prompt('OK, then '.warn(true) + 'please confirm'.
 					error(true) + ' by typing "'.warn(true) +
-					DEFAULT_CODE.warn(true).inverse(true) + '"'.warn(true),
+					DEFAULT_PROMPT.warn(true).inverse(true) + '"'.warn(true),
 						(_answer) => {
-							if(_answer !== DEFAULT_CODE)
+							if(_answer !== DEFAULT_PROMPT)
 							{
 								console.error('Doesn\'t match, so we abort here.');
 								return this.destroy(null, true);
