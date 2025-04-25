@@ -27,3 +27,5 @@
 
 	# SCREENSHOT example noch @ github..!
 
+		# bitte mit eigenem getopt's '--chmod "(8)777"'!! ;-)
+
