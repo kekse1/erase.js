@@ -17,6 +17,7 @@ So I needed to do this directly on file level..
 <br>
 
 ## News
+* \[**2025-04-27**\] Just published an [example screenshot](#screenshot) here.
 * \[**2025-04-25**\] Now also w/ `--chmod` (plus [config.js](#parameters-and-configuration) change);
 * \[**2025-04-25**\] Made this app more secure by calling `fsync` after each iteration.
 * \[**2025-04-22**\] Beautyfied and fixed last errors w/ the ANSI sequences and strings.. looks great.
