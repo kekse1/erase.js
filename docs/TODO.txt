@@ -25,7 +25,3 @@
 
 	# *alle* argv[] nutzen.. also beliebige und mehrere entry-points *sowie* files *parallel*!1 ;-)
 
-	# SCREENSHOT example noch @ github..!
-
-		# bitte mit eigenem getopt's '--chmod "(8)777"'!! ;-)
-
