@@ -29,3 +29,5 @@
 
 		# bitte mit eigenem getopt's '--chmod "(8)777"'!! ;-)
 
+	# wenn eine 0-byte-datei den .status() aufruft, bitte 'iterations' leer lassen
+
