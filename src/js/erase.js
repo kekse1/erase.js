@@ -669,7 +669,7 @@ class Erase extends Quant
 			{
 				if(p[1] === 'chmod')
 				{
-					pa = FileSystem.renderMode(pa).substr(1).warn(true) + String.none() +
+					pa = FileSystem.renderMode(pa, true).warn(true) + String.none() +
 						(' / ' + FileSystem.octalMode(pa).bold(true)).debug(true);
 				}
 				else

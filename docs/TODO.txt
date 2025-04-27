@@ -25,7 +25,3 @@
 
 	# *alle* argv[] nutzen.. also beliebige und mehrere entry-points *sowie* files *parallel*!1 ;-)
 
-	# statt '.substr(1)' @ file-mode.. bzw. in 'fs.js' oder auch 'mode.js'...
-
-		# .. optional begrenzen so weit, dass kein 'd--...' mehr darin enthalten ist.
-
