@@ -669,7 +669,7 @@ class Erase extends Quant
 			{
 				if(p[1] === 'chmod')
 				{
-					pa = FileSystem.renderMode(pa).warn(true) + String.none() +
+					pa = FileSystem.renderMode(pa).substr(1).warn(true) + String.none() +
 						(' / ' + FileSystem.octalMode(pa).bold(true)).debug(true);
 				}
 				else
@@ -798,18 +798,36 @@ class Erase extends Quant
 				++this.done; --this.active;
 				this.open.remove(_file);
 
-				this.status(_file);
-
-				if(_file.bytes > 0 && _file.iterations < this.iterations)
+				var again;
+				
+				if(_file.bytes === 0)
 				{
-					return setImmediate(() => {
+					this.done += (this.iterations - 1);
+					again = false;
+				}
+				else if(_file.iterations < this.iterations)
+				{
+					again = true;
+				}
+				else
+				{
+					again = false;
+				}
+				
+				if(again)
+				{
+					setImmediate(() => {
 						this.handleFile(
 							_file,
 							_callback); });
 				}
-
-				++this.files;
-				_callback(_file);
+				else
+				{
+					++this.files;
+					setImmediate(() => _callback(_file));
+				}
+				
+				this.status(_file);
 			};
 			
 			if(_file.handle) fs.fsync(_file.handle, rest);
