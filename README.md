@@ -45,6 +45,11 @@ This project is also based on some base implementation which is currently not av
 The reason I made this one public is to provide you some example code you could use.
 Or feel free to create a full fledged version out of this one.
 
+## Screenshot
+This is an [example screenshot](img/screenshot.png).
+
+![Example screenshot](img/screenshot.png)
+
 ## TODO
 There's one little [**`TODO.txt`**](docs/TODO.txt) for this (sub-)project.
 
