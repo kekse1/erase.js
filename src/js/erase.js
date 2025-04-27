@@ -572,11 +572,13 @@ class Erase extends Quant
 			this.progress.pad(this.max.percent, ' ', true) +
 			']'.faint(true).defaultFG(true);
 		var size = _file.size.warn(true).pad(this.max.size, ' ', true);
-		const iterations = (this.iterations <= 1 ? '' : (' ' +
+		var iterations = (this.iterations <= 1 ? '' : (' ' +
 			(_file.iterations.toLocaleString().bold(true).info(true) +
 			' / ' + this.iterations.toLocaleString().bold(true).error(true)).
 				pad(this.max.iterations, ' ', true) + ' '));
-		const sum = (progress.textLength + 1 +
+		if(_file.bytes === 0) iterations = ' '.repeat(iterations.textLength);
+		const sum = (
+			progress.textLength + 1 +
 			size.textLength + 1 +
 			iterations.textLength + 1);
 		var left = (console.width - sum);
