@@ -7,15 +7,15 @@
 
 			# `--free` .. entweder nach allem, oder ohne dir/file-params direkt. :-)
 
+			# *progress bar* hier besonders wichtig!
+
+			# 'warn'-anzeige, dass zu haeufig ned gut fuer flash-speicher
+
+				# bestendes warning ergaenzen um `--free` moeglichkeit
+
 	# traverse w/ _depth .. nur um das mit anzuzeigen!
 
 		# generell *muss* *jede* tiefe..
-
-	# teste w/ '--random'!1 ... => sollte gut funktionieren!
-
-	# 'getfilestring()' cut: nochmal testen @ console.width's ..
-
-		# atm noch fehlerhaft, etwas.. :-/
 
 !!!1	@ '.status()': bitte eine progress-bar mit dazu!11
 
@@ -29,5 +29,15 @@
 
 	@ '.prepareFile()' etc. (alles!?) w/out *Sync(); ..!?
 
-	# *alle* argv[] nutzen.. also beliebige und mehrere entry-points *sowie* files *parallel*!1 ;-)
+	# *alle* argv[] nutzen.. also beliebige und mehrere entry-points *sowie* files *parallel*!1!1
+
+	# bei _error *nicht* direkt `throw`, ..
+
+		# .. sondern sammeln/zaehlen und am ende evtl. ausgeben!
+
+		# 'this.errors[]' mit den puren 'Error'! :-)
+
+			# `console.error()` ausgabe anpassen `[path] (name) message`
+
+			# je error gesamtes 'file' object dazu.. oder wenigszens path!
 
