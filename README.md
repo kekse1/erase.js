@@ -11,8 +11,15 @@ overwriting all files with exactly the same amount of `\0` or random bytes.
 Without jailbreak one can't `dd` the whole disk drive(s).
 So I needed to do this directly on file level..
 
+## Flash/SSD drives
+
 > [!WARNING]
 > On Flash drives it's not perfectly secure.. but I'll research a bit more for this issue.
+
+I think the solution for their insecurity is to fill with random/null until no space
+is free, and then delete everything again. Right?!
+
+But this is still a [**TODO**](#todo) item.
 
 <br>
 

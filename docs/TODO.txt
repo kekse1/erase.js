@@ -1,6 +1,12 @@
 
 !111	# loesung insecure ssd/flash?!!?
 
+		# so lange speicher allokalisieren/formatieren, bis keiner mehr frei ist, ..
+
+			# .. dann alles wieder loeschen. sollte gehen, oder?! ^_^
+
+			# `--free` .. entweder nach allem, oder ohne dir/file-params direkt. :-)
+
 	# traverse w/ _depth .. nur um das mit anzuzeigen!
 
 		# generell *muss* *jede* tiefe..
@@ -24,6 +30,4 @@
 	@ '.prepareFile()' etc. (alles!?) w/out *Sync(); ..!?
 
 	# *alle* argv[] nutzen.. also beliebige und mehrere entry-points *sowie* files *parallel*!1 ;-)
-
-	# extra durchlauf fuer "freien speicher" .. also maximal belegen, dann wieder richtig loeschen! ;-)
 
