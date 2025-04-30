@@ -13,6 +13,10 @@
 
 				# bestendes warning ergaenzen um `--free` moeglichkeit
 
+		# direkt @ 'main.js' params auswerten, um dann je nachdem ..
+
+			# `new Space()` statt `new Erase()` .. w/ 'space.js'!
+
 	# traverse w/ _depth .. nur um das mit anzuzeigen!
 
 		# generell *muss* *jede* tiefe..
