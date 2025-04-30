@@ -31,6 +31,8 @@
 
 	# *alle* argv[] nutzen.. also beliebige und mehrere entry-points *sowie* files *parallel*!1!1
 
+		# die pfade alle relativ zum $PWD .. eh?!
+
 	# bei _error *nicht* direkt `throw`, ..
 
 		# .. sondern sammeln/zaehlen und am ende evtl. ausgeben!
