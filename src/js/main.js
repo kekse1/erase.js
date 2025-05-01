@@ -10,6 +10,7 @@ import getopt from '../shared/getopt.js';
 import Erase from './erase.js';
 
 //
-const param = getopt(true);
-const erase = new Erase(param);
+new Erase(getopt(true));
+
+//
 
