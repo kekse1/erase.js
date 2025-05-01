@@ -24,6 +24,7 @@ But this is still a [**TODO**](#todo) item. Should be ready very soon..
 <br>
 
 ## News
+* \[**2025-05-01**\] ATM I'm implementing everything again, just from scratch (w/ all [TODO](#todo) items this time);
 * \[**2025-04-27**\] Just published an [example screenshot](#screenshot) here.
 * \[**2025-04-25**\] Now also w/ `--chmod` (plus [config.js](#parameters-and-configuration) change);
 * \[**2025-04-25**\] Made this app more secure by calling `fsync` after each iteration.

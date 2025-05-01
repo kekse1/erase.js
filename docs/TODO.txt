@@ -9,7 +9,7 @@
 
 			# *progress bar* hier besonders wichtig!
 
-	# traverse w/ _depth .. nur um das mit anzuzeigen!
+!!!!!1	# traverse w/ _depth .. nur um das mit anzuzeigen!
 
 		# generell *muss* *jede* tiefe..
 
@@ -38,4 +38,8 @@
 			# `console.error()` ausgabe anpassen `[path] (name) message`
 
 			# je error gesamtes 'file' object dazu.. oder wenigszens path!
+
+	# ATM IMPLEMENTIERE ICH ALLES NOCHMAL GANZ NEU!!11
+
+		# .. um alle TODO-items mit zu bedenken dabei! :-)
 
