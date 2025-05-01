@@ -34,5 +34,9 @@
 	"chmod": {
 		"type": [ "boolean", "integer" ],
 		"required": false
+	},
+	"space": {
+		"type": "boolean",
+		"required": false
 	}
 }
