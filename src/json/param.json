@@ -1,8 +1,4 @@
 {
-	"help": {
-		"type": "boolean",
-		"required": false
-	},
 	"project": {
 		"type": "directory",
 		"required": true
