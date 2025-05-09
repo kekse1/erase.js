@@ -11,6 +11,9 @@ overwriting all files with exactly the same amount of `\0` or random bytes.
 Without jailbreak one can't `dd` the whole disk drive(s).
 So I needed to do this directly on file level..
 
+> [!NOTE]
+> Currently I'm working on a new version, everything again from scratch.
+
 ## Flash/SSD drives
 
 > [!WARNING]
