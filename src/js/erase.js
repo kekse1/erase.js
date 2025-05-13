@@ -294,7 +294,7 @@ class Erase extends Quant
 		this.multiple = 0;
 		this.found = 0;
 		this.ignored = 0;
-		this.maxDepth = 1;
+		this.depth = 1;
 		this.empty = 0;
 		this.rmList = [ ... this.items.files ];
 		this.rmdirList = [ ... this.items.directories ];
@@ -379,9 +379,9 @@ throw new Error('TODO: --free');
 			}
 			else
 			{
-				if(_depth > this.maxDepth)
+				if(_depth > this.depth)
 				{
-					this.maxDepth = _depth;
+					this.depth = _depth;
 				}
 
 				for(var i = 0; i < _files.length; ++i)
@@ -1595,7 +1595,7 @@ throw new Error('TODO: --free');
 			[ 'count', 'All files we effectively overwrite' ],
 			[ 'size', 'Size of all real files together' ],
 			[ 'bytes', 'Data we effectively write (w/ iterations)' ],
-			[ 'maxDepth', 'Maximum depth on traversing directories' ],
+			[ 'depth', 'Maximum depth on traversing directories' ],
 			[ 'rm', 'Files selected for deletion (unlink)' ],
 			[ 'rmdir', 'Directories for full deletion, from command line' ],
 			[ 'found', 'All found items in file system, including non-regular ones' ],
