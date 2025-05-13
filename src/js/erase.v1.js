@@ -1,6 +1,7 @@
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
  * https://norbert.com.es/
+ * v1
  */
 
 //

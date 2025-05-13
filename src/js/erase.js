@@ -1,7 +1,7 @@
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
  * https://kekse.biz/ https://norbert.com.es/
- * v2.0.1
+ * v2
  */
 
 //
@@ -294,7 +294,7 @@ class Erase extends Quant
 		this.multiple = 0;
 		this.found = 0;
 		this.ignored = 0;
-		this.depth = 1;
+		this.maxDepth = 1;
 		this.empty = 0;
 		this.rmList = [ ... this.items.files ];
 		this.rmdirList = [ ... this.items.directories ];
@@ -302,6 +302,7 @@ class Erase extends Quant
 		this.done = 0;
 		this.set = new Set();
 		this.map = new Map();
+		this.directories = 0;
 		this.open = [];
 		this.lastRefresh = 0;
 		this.lines = 0;
@@ -379,10 +380,12 @@ throw new Error('TODO: --free');
 			}
 			else
 			{
-				if(_depth > this.depth)
+				if(_depth > this.maxDepth)
 				{
-					this.depth = _depth;
+					this.maxDepth = _depth;
 				}
+
+				var pushed = false;
 
 				for(var i = 0; i < _files.length; ++i)
 				{
@@ -412,6 +415,12 @@ throw new Error('TODO: --free');
 					}
 					else if(_files[i].isFile())
 					{
+						if(!pushed)
+						{
+							++this.directories;
+							pushed = true;
+						}
+
 						result[index++] = p;
 					}
 					else
@@ -968,6 +977,7 @@ throw new Error('TODO: --free');
 	continueRegular()
 	{
 		delete this.set;
+		++this.directories;
 
 		const more = (this.rmList.length > 0 ||
 			this.rmdirList.length > 0);
@@ -1595,7 +1605,8 @@ throw new Error('TODO: --free');
 			[ 'count', 'All files we effectively overwrite' ],
 			[ 'size', 'Size of all real files together' ],
 			[ 'bytes', 'Data we effectively write (w/ iterations)' ],
-			[ 'depth', 'Maximum depth on traversing directories' ],
+			[ 'directories', 'Amount of directories w/ files to erase' ],
+			[ 'maxDepth', 'Maximum depth on traversing directories' ],
 			[ 'rm', 'Files selected for deletion (unlink)' ],
 			[ 'rmdir', 'Directories for full deletion, from command line' ],
 			[ 'found', 'All found items in file system, including non-regular ones' ],
