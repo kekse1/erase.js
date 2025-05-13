@@ -26,7 +26,7 @@ But this is still a [**TODO**](#todo) item. Should be ready very soon..
 <br>
 
 ## News
-* \[**2025-05-14**\] Completely **rewritten** from scratch (no current screenshot available yet)!
+* \[**2025-05-14**\] Completely **rewritten** from scratch (now also with new [screenshot](#screenshot)), v**2**;
 * \[**2025-05-01**\] ATM I'm implementing everything again, just from scratch (w/ all [TODO](#todo) items this time);
 * \[**2025-04-27**\] Just published an [example screenshot](#screenshot) here.
 * \[**2025-04-25**\] Now also w/ `--chmod` (plus [config.js](#parameters-and-configuration) change);
@@ -41,9 +41,10 @@ But this is still a [**TODO**](#todo) item. Should be ready very soon..
 <br>
 
 ## Download
-Here's the newest (second) version available (which isn't even covered by the
-[screenshot](#screenshot) below. Much better code, beautified everything up,
-and most [TODO](#todo) items are integrated now.
+Here's the newest (second) version available.
+
+Much better code, beautified everything up, and most [TODO](#todo) items are integrated now.
+The [older version](src/js/erase.v1.js) is also there, beneath the [newest version](src/js/erase.js).
 
 * [**`./src/js/`**](src/js/) (updated **2025-05-14**);
 * [**`./src/sh/`**](src/sh/) (published **2025-05-14**);
@@ -62,13 +63,13 @@ The reason I made this one public is to provide you some example code you could 
 Or feel free to create a full fledged version out of this one.
 
 ## Screenshot
-This is an [example screenshot](img/example.png).
+This is an [example screenshot](img/example.png). **Newest version (v2)**.
 
-> [!WARNING]
-> This one shows the **first version** only!
-> My newest rewrite (from scratch) looks completely different!
+![Version2](img/version2.png)
 
-![Example screenshot](img/example.png)
+And this is the [**older version**](src/js/erase.v1.js) (**v1**).
+
+![Version1](img/version1.png)
 
 ## TODO
 There's one little [**`TODO.txt`**](docs/TODO.txt) for this (sub-)project.
