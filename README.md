@@ -63,7 +63,7 @@ The reason I made this one public is to provide you some example code you could 
 Or feel free to create a full fledged version out of this one.
 
 ## Screenshot
-This is an example screenshot for the **newest version (v2)**.
+This is an example screenshot for the [**newest version (v2)**](src/js/erase.js).
 
 ![Version2](img/version2.png)
 
