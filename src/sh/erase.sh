@@ -24,7 +24,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 #
-CMD="'${NODE}' '${MAIN}' --project '${PROJ}' --script '${SCRIPT}' --config '${CONFIG}'"
+CMD="'${NODE}' '${MAIN}' --base '${NAME}' --project '${PROJ}' --script '${SCRIPT}' --config '${CONFIG}'"
 
 for i in "$@"; do
 	CMD="${CMD} '$i'"

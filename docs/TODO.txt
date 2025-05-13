@@ -5,41 +5,9 @@
 
 			# .. dann alles wieder loeschen. sollte gehen, oder?! ^_^
 
-			# `--space` .. entweder nach allem, oder ohne dir/file-params direkt. :-)
+			# prepared: '--free' (space mode); TODO!1 ...
 
-			# *progress bar* hier besonders wichtig!
+		# gibt's weitere masznahmen? siehe evtl. stackoverflow; ...
 
-!!!!!1	# traverse w/ _depth .. nur um das mit anzuzeigen!
-
-		# generell *muss* *jede* tiefe..
-
-!!!1	@ '.status()': bitte eine progress-bar mit dazu!11
-
-		# auch in den 'config.json', AS USUAL(!)!
-
-		# da atm durch zaehlung der dateien (ist wichtig wg. null-size-files!!):
-
-!!!			# .. JE DATEI EIN PROGRESS BASIEREND AUF REAL SIZEs!!
-
-!				# sprich, ein haupt- und n(.parallel) sub-progress-bars
-
-	@ '.prepareFile()' etc. (alles!?) w/out *Sync(); ..!?
-
-	# *alle* argv[] nutzen.. also beliebige und mehrere entry-points *sowie* files *parallel*!1!1
-
-		# die pfade alle relativ zum $PWD .. eh?!
-
-	# bei _error *nicht* direkt `throw`, ..
-
-		# .. sondern sammeln/zaehlen und am ende evtl. ausgeben!
-
-		# 'this.errors[]' mit den puren 'Error'! :-)
-
-			# `console.error()` ausgabe anpassen `[path] (name) message`
-
-			# je error gesamtes 'file' object dazu.. oder wenigszens path!
-
-	# ATM IMPLEMENTIERE ICH ALLES NOCHMAL GANZ NEU!!11
-
-		# .. um alle TODO-items mit zu bedenken dabei! :-)
+	# use 'String.numerus(_count)' everywhere..! ;-)
 

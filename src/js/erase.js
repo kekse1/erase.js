@@ -1,6 +1,7 @@
 /*
  * Copyright (c) Sebastian Kucharczyk <kuchen@kekse.biz>
- * https://norbert.com.es/
+ * https://kekse.biz/ https://norbert.com.es/
+ * v2.0.0
  */
 
 //
@@ -8,6 +9,12 @@ const DEFAULT_PARAM_SCHEME_JSON = '../../json/param/erase.json';
 const DEFAULT_PROMPT = 'erase!';
 const DEFAULT_ROUND = 1;
 const DEFAULT_MODE = 0;
+const DEFAULT_BASE = 1024;
+const DEFAULT_PREC = 2;
+const DEFAULT_FIXED = true;
+const DEFAULT_BYTES = true;
+const DEFAULT_ALL = true;
+const DEFAULT_PROGRESS = 2.5;
 
 //
 import FileSystem from '../shared/fs.js';
@@ -17,6 +24,7 @@ import Quant from '../shared/quant.js';
 import crypt from '../shared/crypt.js';
 import path from 'node:path';
 import fs from 'node:fs';
+import Help from './help.js';
 
 //
 class Erase extends Quant
@@ -46,6 +54,71 @@ class Erase extends Quant
 		return this.destroy(_name, _code, ... _args);
 	}
 	
+	get freeSpace()
+	{
+		return !!this.param.get('free');
+	}
+	
+	static checkPathParameters(_param)
+	{
+		const set = new Set();
+		const directories = [];
+		const files = [];
+		var stats, p;
+
+		for(var i = 0; i < _param.length; ++i)
+		{
+			if(! pathname(_param[i]))
+			{
+				continue;
+			}
+
+			if(set.has(p = path.resolve(_param[i])))
+			{
+				continue;
+			}
+			else
+			{
+				set.add(p);
+			}
+			
+			try
+			{
+				stats = fs.lstatSync(p);
+			}
+			catch(_err)
+			{
+				continue;
+			}
+
+			if(stats.isSymbolicLink())
+			{
+				++symlinks;
+				continue;
+			}
+			else if(stats.isDirectory())
+			{
+				directories.push(p);
+			}
+			else if(stats.isFile())
+			{
+				files.push(p);
+			}
+			else
+			{
+				++others;
+				continue;
+			}
+		}
+		
+		if(directories.length === 0 && files.length === 0)
+		{
+			return null;
+		}
+		
+		return { files, directories };
+	}
+	
 	//
 	onApplication(_app, _info, _config, _object, _data)
 	{
@@ -57,83 +130,26 @@ class Erase extends Quant
 			}
 
 			//
-			var entry = null, found = false, stats;
-			const files = [];
-
-			for(var i = 0, j = 0; i < this.param.length; ++i)
+			this.errorList = [];
+			
+			//
+			var items;
+			
+			if(this.free = this.freeSpace)
 			{
-				if(pathname(this.param[i]))
-				{
-					found = true;
-					entry = this.param.splice(i--, 1)[0];
-
-					try
-					{
-						stats = fs.lstatSync(entry);
-					}
-					catch(_err)
-					{
-						entry = null;
-						continue;
-					}
-
-					if(stats.isDirectory())
-					{
-						entry = path.resolve(entry);
-					}
-					else if(stats.isSymbolicLink())
-					{
-						entry = null;
-					}
-					else if(stats.isFile())
-					{
-						files[j++] = path.resolve(entry);
-						entry = null;
-					}
-					else
-					{
-						entry = null;
-					}
-				}
+				this.freeSpaceFlashWarning();
+				this.items = null;
 			}
-
-			if(pathname(entry))
+			else if(!(items = Erase.checkPathParameters(this.param)))
 			{
-				this.path = entry;
-
-				if(files.length > 0)
-				{
-					console.warn('You also specified an entry ' + 'directory'.info(true).bold(true) + ', so ' +
-						files.length.toLocaleString().bold(true).error(true) + ' files'.bold(true) + ' are ' +
-						'ignored'.underline(true).error(true) + '!');
-				}
-			}
-			else if(files.length > 0)
-			{
-				this.path = files;
-
-				console.warn('You specified no (valid) entry ' +
-					'directory'.underline(true) + ', but ' +
-					files.length.toLocaleString().bold(true).error(true) +
-					' existing ' + 'files'.underline(true) + '.');
+				console.eol(2);
+				return new Help(this.param, true);
 			}
 			else
 			{
-				if(found)
-				{
-					console.error('None of your arguments is an existing directory or file!');
-				}
-				else
-				{
-					console.error('You need to define the entry point directory or one or more files!');
-				}
-
-				return this.destroy(null, true);
+				this.items = items;
+				this.flashWarning();
 			}
-
-			//
-			console.eol();
-			this.warning();
 
 			//
 			if(this.param.has('random'))
@@ -208,6 +224,30 @@ class Erase extends Quant
 			{
 				this.chmod = null;
 			}
+			
+			if(this.param.has('refresh'))
+			{
+				if((this.refresh = this.param.get('refresh')) < 0)
+				{
+					this.refresh = this.getConfig('interface.refresh');
+				}
+			}
+			else
+			{
+				this.refresh = this.getConfig('interface.refresh');
+			}
+
+			if(this.param.has('ansi'))
+			{
+				process.ansi = this.param.get('ansi');
+			}
+			else
+			{
+				process.ansi = this.getConfig('interface.ansi');
+			}
+
+			//
+			global.progressStyle = this.getConfig('interface.progress');
 
 			//
 			console.eol();
@@ -232,11 +272,59 @@ class Erase extends Quant
 			}
 
 			//
-			this.start();
+			if(this.free)
+			{
+				this.freeSpaceStart();
+			}
+			else
+			{
+				this.regularStart();
+			}
+
+			//
 		}, path.join(this.param.get('script'),
 			DEFAULT_PARAM_SCHEME_JSON), this.param);
 	}
+
+	//
+	regularStart(_items = this.items)
+	{
+		//
+		this.prohibited = 0;
+		this.multiple = 0;
+		this.found = 0;
+		this.ignored = 0;
+		this.maxDepth = 1;
+		this.empty = 0;
+		this.rmList = [ ... this.items.files ];
+		this.rmdirList = [ ... this.items.directories ];
+		this.size = 0;
+		this.done = 0;
+		this.set = new Set();
+		this.map = new Map();
+		this.directories = 0;
+		this.open = [];
+		this.lastRefresh = 0;
+		this.lines = 0;
+		
+		//
+		this.checkFiles(this.items.files, (... _a) => {
+			delete this.items.files;
+			this.traverseDirectories(this.items.directories, (_files) => {
+				delete this.items;
+				this.checkFiles(_files, (... _a) => {
+					this.continueRegular(); });
+			});
+		});
+	}
 	
+	//
+	freeSpaceStart()
+	{
+throw new Error('TODO: --free');
+	}
+	
+	//
 	destroy(_name, _code = 0, ... _args)
 	{
 		super.destroy();
@@ -245,362 +333,1212 @@ class Erase extends Quant
 		process.exit(_code);
 	}
 
-	getBuffer(_size, _callback)
+	flashWarning()
 	{
-		if(this.random)
+		console.warn(('WARNING'.inverse(true) + ': ' +
+			'Flash/SSD drives probably cause less security!'
+				.bold(true)).underline(true));
+		console.debug('In this case you should also ' +
+			('call this with '.warn(true) + '--free'.
+				bold(true).info(true)).bold(true) +
+					'!');
+		console.eol();
+	}
+	
+	freeSpaceFlashWarning()
+	{
+		console.warn(('WARNING'.inverse(true) + ': ' +
+			'This mode is really ' + 'recommended'.info(true).bold(true) +
+			' on ' + 'Flash/SSD drives'.bold(true).error(true)).
+			underline(true) + (',' + EOL + 'but shouldn\'t' +
+			' be repeated too often (' + 'due to ' +
+			('NAND ' + 'endurance'.underline(true)).
+			bold(true).error(true) + ')!').warn(true));
+		console.eol();
+	}
+
+	//
+	traverseDirectories(_directories, _callback)
+	{
+		const cwd = process.cwd();
+		const result = []; var index = 0;
+		var rest = _directories.length;
+
+		if(rest === 0)
 		{
-			return crypt.getRandomBytes(
-				_size, _callback);
+			return _callback(result);
 		}
 
-		const result = new Uint8Array(_size);
+		const readdirCallback = (_path, _err, _files, _depth = 1) => {
+			if(_path === null)
+			{
+				//
+			}
+			else if(_err)
+			{
+				this.pushError(_err, _path);
+			}
+			else
+			{
+				if(_depth > this.maxDepth)
+				{
+					this.maxDepth = _depth;
+				}
 
-		if(func(_callback))
+				var pushed = false;
+
+				for(var i = 0; i < _files.length; ++i)
+				{
+					const p = path.join(_path, _files[i].name);
+				
+					if(_files[i].isSymbolicLink())
+					{
+						++this.ignored;
+						continue;
+					}
+					else if(_files[i].isDirectory())
+					{
+						if(this.set.has(p))
+						{
+							++this.multiple;
+							continue;
+						}
+
+						this.set.add(p); ++rest;
+						fs.readdir(p, {
+							encoding: 'utf8',
+							withFileTypes: true,
+							recursive: false },
+								(... _a) => readdirCallback(
+									p, ... _a,
+										_depth + 1));
+					}
+					else if(_files[i].isFile())
+					{
+						if(!pushed)
+						{
+							++this.directories;
+							pushed = true;
+						}
+
+						result[index++] = p;
+					}
+					else
+					{
+						++this.ignored;
+					}
+				}
+			}
+
+			if(--rest <= 0)
+			{
+				_callback(result);
+			}
+		};
+
+		for(var i = 0; i < _directories.length; ++i)
 		{
-			_callback(null, result);
+			const p = _directories[i];
+
+			if(this.set.has(p))
+			{
+				++this.multiple;
+				continue;
+			}
+			
+			this.set.add(p);
+			fs.realpath(p, { encoding: 'utf8' }, (_err, _path) => {
+				if(_err)
+				{
+					this.pushError(_err, p);
+					readdirCallback(null);
+				}
+				else if(!FileSystem.below(cwd, _path, true))
+				{
+					this.rmdirList.remove(_path);
+					++this.prohibited;
+					readdirCallback(null);
+				}
+				else fs.readdir(_path, {
+					encoding: 'utf8',
+					withFileTypes: true,
+					recursive: false },
+					(... _a) => readdirCallback(
+						_path, ... _a));
+			});
+		}
+	}
+	
+	static size(_bytes, _int = DEFAULT_BYTES, _ansi_a = 'info', _ansi_b = 'debug')
+	{
+		if(string(_ansi_a, false))
+		{
+			if(! (_ansi_a in String.prototype))
+			{
+				_ansi_a = '';
+			}
+		}
+		else
+		{
+			_ansi_a = '';
+		}
+
+		if(string(_ansi_b, false))
+		{
+			if(! (_ansi_b in String.prototype))
+			{
+				_ansi_b = '';
+			}
+		}
+		else
+		{
+			_ansi_b = '';
+		}
+
+		if(_ansi_a && !_ansi_b)
+		{
+			_ansi_b = _ansi_a;
+		}
+
+		var result = Math.size.styled(
+			_bytes,
+			DEFAULT_BASE,
+			DEFAULT_PREC,
+			DEFAULT_FIXED);
+
+		if(_ansi_a)
+		{
+			result = result[_ansi_a](true);
+		}
+
+		if(_int && _bytes >= DEFAULT_BASE)
+		{
+			var bytes = (' (' + _bytes.toLocaleString().
+				bold(true) + ' Bytes)');
+
+			if(_ansi_b)
+			{
+				bytes = bytes[_ansi_b](true);
+			}
+
+			result += bytes;
 		}
 
 		return result;
 	}
 
-	start()
+	checkFiles(_files, _callback)
 	{
-		//
-		process.stdin.resume();
+		const cwd = process.cwd();
+		var rest = _files.length;
 
-		//
-		this.list = [];
-		this.links = [];
-		this.directories = [];
-		this.files = 0;
-		this.errors = [];
-		this.openDirectories = 0;
-		this.found = {
-			files: 0,
-			directories: 0,
-			links: 0,
-			other: 0
-		};
-		this.done = 0;
-		this.bytes = 0;
-		this.size = null;
-		this.max = {	percent: Erase.getPercentStringMax(DEFAULT_ROUND),
-				file: 0, size: 0, iterations: ((this.iterations.
-					toLocaleString().length * 2) + 4) };
-
-		//
-		this.intro();
-
-		//
-		if(pathname(this.path))
+		if(rest === 0)
 		{
-			this.findFiles(this.path);
+			return _callback();
 		}
-		else
-		{
-			this.useFiles(this.path);
-		}
-	}
-
-	useFiles(_files = this.path)
-	{
-		delete this.openDirectories;
-
-		var p; for(var i = 0; i < _files.length; ++i)
-		{
-			if(p = this.prepareFile(_files[i]))
+		
+		const lstatCallback = (_file, _err, _stats) => {
+			if(--rest <= 0) setImmediate(
+				() => _callback());
+			
+			if(_file === null)
 			{
-				++this.found.files;
-				this.list.push(p);
+				return;
 			}
-		}
+			
+			const file = {
+				path: _file,
+				basename: path.basename(_file),
+				dirname: path.dirname(_file),
+				relative: path.relative(cwd, _file)
+			};
 
-		this.LIST = [ ... this.list ];
-		this.prepare();
-	}
-	
-	findFiles(_path = this.path)
-	{
-		const readdirCallback = (_err, _files) => {
 			if(_err)
 			{
-				throw _err;
+				this.pushError(_err, _file);
+			}
+			else if(this.map.has(_file))
+			{
+				++this.multiple;
+			}
+			else if(!_stats.isSymbolicLink() && _stats.isFile())
+			{
+				//
+				if(_stats.size === 0)
+				{
+					return ++this.empty;
+				}
+
+				//
+				this.size += _stats.size;
+
+				//
+				file.bytes = _stats.size;
+				file.write = (_stats.size * this.iterations);
+				file.size = Erase.size(_stats.size);
+				file.perm = FileSystem.renderMode(
+					file.mode = _stats.mode, true);
+				file.octal = FileSystem.octalMode(
+					_stats.mode);
+				file.links = _stats.nlink;
+				file.handle = null;
+				file.iterations = 0;
+				file.done = 0;
+				
+				//
+				this.map.set(_file, file);
+			}
+			else
+			{
+				++this.ignored;
+			}
+		};
+
+		const realpathCallback = (_file, _err, _path) => {
+			if(_err)
+			{
+				this.pushError(_err, _file);
+				return lstatCallback(null);
+			}
+			
+			if(!FileSystem.below(cwd, _file, true))
+			{
+				this.rmdirList.remove(_path);
+				++this.prohibited;
+				return lstatCallback(null);
 			}
 
-			var p; for(var i = 0; i < _files.length; ++i)
-			{
-				p = path.join(_path, _files[i].name);
+			++this.found;
+			fs.lstat(_file, { bigint: false }, (... _a) => {
+				lstatCallback(_file, ... _a); });
+		};
 
-				if(_files[i].isSymbolicLink())
+		for(var i = 0; i < _files.length; ++i)
+		{
+			const p = _files[i];
+			fs.realpath(p, { encoding: 'utf8' }, (... _a) => {
+				realpathCallback(p, ... _a); });
+		}
+	}
+
+	pushError(_error, _path)
+	{
+		_error.PATH = (_path || '');
+		return this.errorList.push(_error);
+	}
+
+	//
+	regularVariables()
+	{
+		const regularVariables = Erase.regularVariables;
+		const maxKeyLen = Erase.getMaxRegularVariablesKeyLength(2);
+		const lines = [], width = console.width;
+		var key, value, desc, len, zero;
+
+		for(const param of regularVariables)
+		{
+			value = this[param[0]];
+			zero = !value;
+
+			if(zero && !DEFAULT_ALL)
+			{
+				continue;
+			}
+			
+			if(zero)
+			{
+				param[0] = param[0].faint(true);
+			}
+			
+			key = ('['.faint(true) + param[0] + ']'.faint(true)).
+				info(true).pad(maxKeyLen, ' ', true);
+
+			switch(param[0])
+			{
+				case 'size':
+				case 'bytes':
+					value = Erase.size(
+						value,
+						DEFAULT_BYTES,
+						'warn',
+						'error');
+					break;
+				default:
+					value = value.toLocaleString().warn(true);
+					break;
+			}
+
+			if(zero)
+			{
+				value = value.faint(true);
+			}
+
+			len = (key.textLength + value.textLength + 2);
+			len = (width - len - 2);
+
+			if(len > 0)
+			{
+				desc = param[1].substr(0, len).debug(true);
+				len -= (desc.textLength + 2);
+
+				if(zero)
 				{
-					this.links.push(p);
-					++this.found.links;
+					desc = desc.faint(true);
 				}
-				else if(_files[i].isDirectory())
+
+				if(len > 0)
 				{
-					++this.found.directories;
-					this.directories.push(p);
-					this.findFiles(p);
+					desc = '.'.repeat(len).
+						faint(true) +
+						' ' + desc;
 				}
-				else if(_files[i].isFile())
-				{
-					if(p = this.prepareFile(p))
+			}
+			else
+			{
+				desc = '';
+			}
+			
+			lines.push(key + ' ' + value + (desc ? ' ' + desc : ''));
+		}
+
+		console.log(EOL + lines.join(EOL) + EOL + String.none());
+		return lines;
+	}
+
+	get count()
+	{
+		return this.map.size;
+	}
+
+	static getMaxRegularVariablesKeyLength(_add = 2)
+	{
+		const variables = this.regularVariables;
+		var result = 0, length;
+
+		for(const param of variables)
+		{
+			if((length = param[0].length) > result)
+			{
+				result = length;
+			}
+		}
+
+		return (result + _add);
+	}
+
+	static getMaxRegularParametersKeyLength(_add = 2)
+	{
+		const parameters = this.regularParameters;
+		var result = 0, length;
+
+		for(const param of parameters)
+		{
+			if((length = param[0].length) > result)
+			{
+				result = length;
+			}
+		}
+
+		return (result + _add);
+	}
+
+	regularParameters()
+	{
+		console.info('Your ' + 'parameters'.bold(true) + ' ' +
+			('(change via ' + 'config.json'.quote().error(true) + ' or ' +
+			'command line'.error(true) + '; see '.debug(true) +
+				'--help / -?'.bold(true).warn(true) + ')').
+					debug(true) + ':'.info(true));
+		console.eol();
+
+		const parameters = Erase.regularParameters;
+		const maxKeyLen = Erase.getMaxRegularParametersKeyLength(2);
+		const width = console.width;
+		var key, name, desc, value, left;
+		
+		for(const param of parameters)
+		{
+			key = param[0];
+			name = param[2].padStart(maxKeyLen, ' ').info(true);
+			desc = param[1].debug(true);
+			left = (width - name.textLength - desc.textLength - 6);
+			value = this[key];
+
+			switch(Reflect.is(value))
+			{
+				case 'Boolean':
+					value = value.toString(true);
+					break;
+				case 'Number':
+				case 'BigInt':
+					switch(key)
 					{
-						++this.found.files;
-						this.list.push(p);
+						case 'chmod':
+							value = (FileSystem.renderMode(
+								value, true).error(true) + ' ('.
+								defaultFG(true).faint(true) +
+								FileSystem.octalMode(value).
+									debug(true) + ')'.
+									defaultFG(true).
+									faint(true) +
+									String.none());
+							break;
+						case 'buffer':
+							const v = value;
+							value = Math.size.styled(value).
+								info(true);
+							if(v >= 1024) value += (' (' +
+								v.toLocaleString().bold(true) +
+									' Bytes)').debug(true);
+							break;
+						default:
+							value = value.toLocaleString().
+								bold(true).warn(true);
+							break;
+					}
+					break;
+				case 'String':
+					value = value.error(true).quote();
+					break;
+				default:
+					switch(key)
+					{
+						case 'chmod':
+							value = '-/-'.error(true) + (' (' +
+								'unchanged)').debug(true);
+							break;
+						default:
+							console.dir({value,param,key});
+							throw new Error('Unexpected');
+					}
+					break;
+			}
+
+			value = (value + ' ').pad(-left, '.', true);
+			
+			console.log(name + ': '.defaultFG(true) +
+				value + ' ' + desc);
+		}
+
+		console.eol();
+	}
+
+	prompt(_callback, _twice = true, _print = true)
+	{
+		const accepted = () => {
+			if(_print) console.info('Accepted'.bold(true) + '! So we ' + 'continue'.underline(true).warn(true) + ' here.');
+			if(_callback) _callback(true);
+		};
+		
+		const rejected = () => {
+			if(_print) console.error('Rejected'.bold(true) + '! So we ' + 'stop'.underline(true).warn(true) + ' here.');
+			if(_callback) _callback(false);
+			else this.destroy(null, true);
+		};
+		
+		console.confirm('Do you really want to '.warn(true) +
+			'continue'.error(true) + ''.debug(false),
+			(_accepted) => {
+				if(_accepted)
+				{
+					if(!_twice)
+					{
+						return accepted();
+					}
+					
+					if(string(DEFAULT_PROMPT, false))
+					{
+						console.prompt('Then please '.warn(true) +
+							'confirm it'.error(true).
+							underline(true) + ' by typing in ' +
+							DEFAULT_PROMPT.info(true).
+							inverse(true).bold(true).quote() +
+							' here: '.warn(false) +
+							''.bold(false), (_answer) => {
+								if(_answer === DEFAULT_PROMPT)
+								{
+									return accepted();
+								}
+
+								return rejected();
+							});
+					}
+					else
+					{
+						console.confirm('Are you '.warn(true) +
+							' really sure'.error(true),
+							(_accepted) => {
+								if(_accepted)
+								{
+									return accepted();
+								}
+								
+								return rejected();
+							});
 					}
 				}
 				else
 				{
-					++this.found.other;
+					rejected();
 				}
-			}
-
-			if(--this.openDirectories <= 0)
-			{
-				++this.found.directories;
-				this.directories.unshift(this.path);
-				this.LIST = [ ... this.list ];
-				delete this.openDirectories;
-				this.prepare();
-			}
-		};
-
-		++this.openDirectories;
-		fs.readdir(_path, {
-			encoding: 'utf8',
-			withFileTypes: true,
-			recursive: false },
-				readdirCallback);
-	}
-
-	prepare()
-	{
-		if(this.found.files === 0 &&
-			this.found.links === 0 &&
-			this.found.directories === 0)
-		{
-			console.warn('Nothing for secure erasing found.');
-			return this.destroy();
-		}
-		
-		if(pathname(this.path))
-		{
-			console.info(('Entry point: ' +
-				this.path.warn(true).
-				inverse(true)).bold(true));
-			console.eol();
-		}
-
-		this.size = Math.size.styled(
-			this.bytes).error(true) + (this.bytes >= 1024 ?
-				(' (' + this.bytes.toLocaleString() + ' Bytes)').
-					warn(true) : '');
-		this.max.size = this.size.textLength;
-
-		console.info('Found ' + this.found.files.toLocaleString().
-			warn(true).bold(true) + ' files in ' +
-			this.found.directories.toLocaleString().
-			warn(true).bold(true) + ' directories: ' +
-			this.size.error(true));
-		if(this.found.links > 0) console.info('Additionally there are also ' +
-			this.found.links.toLocaleString().warn(true).bold(true) + ' symbolic links.' + EOL);
-		if(this.found.other > 0) console.info('Plus ' +
-			this.found.other.toLocaleString().bold(true).warn(true) +
-			' other entries..');
-
-		//
-		console.confirm('Do you really want to continue'.error(true),
-			(_answer) => {
-				if(!_answer)
-				{
-					console.error('Aborted by you.');
-					return this.destroy(null, true);
-				}
-
-				if(string(DEFAULT_PROMPT, false)) console.prompt('OK, then '.warn(true) + 'please confirm'.
-					error(true) + ' by typing "'.warn(true) +
-					DEFAULT_PROMPT.warn(true).inverse(true) + '"'.warn(true),
-						(_answer) => {
-							if(_answer !== DEFAULT_PROMPT)
-							{
-								console.error('Doesn\'t match, so we abort here.');
-								return this.destroy(null, true);
-							}
-
-							console.eol(); return this.erase();
-						});
-				else console.confirm('Are you '.warn(true) + 'really'.error(true).bold(true) + ' sure' + ''.debug(false),
-					(_answer) => { if(!_answer) { console.error('So we\'re aborting here.');
-						return this.destroy(null, true); } console.eol(); return this.erase(); });
 			});
-	
-		return true;
 	}
 
-	get fin()
+	unlinkPrompt(_callback, _twice, _print = true)
 	{
-		return (this.list.length === 0 && this.open.length === 0 && this.active === 0);
-	}
+		const rm = (this.rmList.length > 0);
+		const rmdir = (this.rmdirList.length > 0);
 
-	//
-	finish()
-	{
-		//
-		console.eol();
+		if(! (rm || rmdir))
+		{
+			return _callback(null);
+		}
 
-		//
 		if(!this.delete)
 		{
-			if(this.found.directories > 0)
+			if(! _print)
 			{
-				console.warn(('Due to ' + '--delete'.error(true) + ', we do ' +
-					'not'.underline(true) +
-					' delete the whole thing..!').bold(true) + EOL);
+				return _callback(true);
+			}
+
+			console.eol();
+
+			if(rm && rmdir)
+			{
+				console.info('There are %s ' + 'files'.underline(true) +
+					' and %s ' + 'directories'.underline(true) +
+					' selected for removal, but %s ain\'t' +
+					' configured!',
+						this.rmList.length.toLocaleString().
+							bold(true).warn(true),
+						this.rmdirList.length.toLocaleString().
+							bold(true).warn(true),
+						'--delete'.error(true));
+			}
+			else if(rm)
+			{
+				console.info('There are %s ' + 'files'.underline(true) +
+					' selected for removal, but %s ain\'t' +
+					' configured!',
+						this.rmList.length.toLocaleString().
+							bold(true).warn(true),
+						'--delete'.error(true));
 			}
 			else
 			{
-				console.warn(('Due to ' + '--delete'.error(true) + ', we do ' +
-					'not'.underline(true) +
-					' delete this ' + this.found.files.toLocaleString().bold(true).error(true) +
-					' files..!'.warn(true)).bold(true) + EOL);
+				console.info('There are %s ' + 'directories'.underline(true) +
+					' selected for removal, but %s ain\'t' +
+					' configured!',
+						this.rmdirList.length.toLocaleString().
+							bold(true).warn(true),
+						'--delete'.error(true));
 			}
 
-			console.warn('All files are left with their original sizes ' +
-				'in their ' + 'original locations'.underline(true).warn(true) + '!');
-			console.info('They are just filled ' +
-				'with ' + (this.random ? 'random data' : 'zeroes').bold(true).info(true) + ' now!');
-
-			return this.summary();
+			console.debug('So we won\'t do anything more now.');
+			return _callback(true);
 		}
-
-		const fin = () => {
-			console.warn('Done.'.bold(true) + EOL);
-			return this.summary(); };
 		
-		if(this.found.directories === 0)
+		if(!_print)
 		{
-			var rest = this.LIST.length;
-			const cb = (_err) => {
-				if(_err) throw _err;
-				if(--rest <= 0) fin(); };
-			
-			for(var i = 0; i < this.LIST.length; ++i)
-				fs.unlink(this.LIST[i].path, cb);
+			this.prompt(_callback, _twice, false);
 		}
-		else
-		{
-			console.info('Now we\'re removing the whole directory structure' +
-				' (with all files etc. in it).');
-			fs.rm(this.path, { recursive: true }, (_err) => {
-				if(_err) throw _err; fin(); });
-		}
-	}
 
-	summary()
-	{
 		console.eol();
 
-		if(this.files > 0)
+		if(rm && rmdir)
 		{
-			const add = (this.bytes < 1024 ? '' :
-				(' (' + this.bytes.toLocaleString() + ' Bytes)').debug(true));
-			console.info('Erased ' + this.files.toLocaleString().
-				warn(true).bold(true) + ' files: ' +
-					Math.size.styled(this.bytes).error(true) + add);
+			console.warn('We\'re about to unlink %s ' +
+				'files'.underline(true) + ' and %s ' +
+				'directories'.underline(true) + ' now.',
+				this.rmList.length.toLocaleString().
+					bold(true).error(true),
+				this.rmdirList.length.toLocaleString().
+					bold(true).error(true));
+		}
+		else if(rm)
+		{
+			console.warn('We\'re about to unlink %s ' +
+				'files'.underline(true) + ' now.',
+				this.rmList.length.toLocaleString().
+					bold(true).error(true));
 		}
 		else
 		{
-			console.warn(EOL + 'No files erased.'.bold(true));
-		}
-		
-		if(this.delete)
-		{
-			if(this.found.links > 0) console.debug('There were ' +
-				this.found.links.toLocaleString().bold(true).info(true) +
-				' symbolic links (which are gone now).');
-			if(this.found.other > 0) console.debug('Plus ' +
-				this.found.other.toLocaleString().bold(true).error(true) +
-				' other entries..');
+			console.warn('We\'re about to unlink %s ' +
+				'directories'.underline(true) + ' now.',
+				this.rmdirList.length.toLocaleString().
+					bold(true).error(true));
 		}
 
-		if(pathname(this.path))
-		{
-			console.info(EOL + 'Entry point was: ' +
-				this.path.error(true).inverse(true));
-		}
-
-		//
-		return this.destroy();
+		console.debug('So I need your permission now. ...');
+		this.prompt(_callback, _twice, true);
 	}
 
-	getFileString(_file)
+	continueRegular()
 	{
-		var result;
+		delete this.set;
+		++this.directories;
 
-		if(pathname(this.path))
+		const more = (this.rmList.length > 0 ||
+			this.rmdirList.length > 0);
+
+		if(this.map.size === 0)
 		{
-			result = path.relative(this.path, _file);
+			console.info('There are ' + 'no files selected'.
+				underline(true).warn(true) + ' for secure erase.');
+
+			return this.unlinkPrompt((_accepted) => {
+				console.eol(); if(more && _accepted)
+					this.unlinkItems(() => {
+						this.finishRegular(true); });
+				else	this.finishRegular(true);
+			}, true, true);
 		}
-		else
-		{
-			result = path.relative(process.cwd(), _file);
-		}
-		
-		return result;
+
+		this.regularParameters();
+		this.regularVariables();
+
+		this.prompt((_accepted) => { console.eol();
+			if(!_accepted) return this.finishRegular(false);
+
+			this.clearLines(0, 2);
+			console.info('Now we ' + 'overwrite'.error(true) +
+				' %s ' + 'files'.warn(true) + '!',
+					this.map.size.toLocaleString().
+						bold(true).error(true));
+			console.eol();
+
+			this.eraseFiles(() => {
+				console.info('Secure erasing ' + 'done'.bold(true) + '! :-D');
+
+				this.unlinkPrompt((_accepted) => {
+					if(_accepted !== null) this.clearLines(0, 2);
+					if(more && _accepted)
+						this.unlinkItems(() => {
+							this.finishRegular(true); });
+					else	this.finishRegular(true);
+				}, false);
+			});
+		}, true, true);
 	}
 	
-	static beautifyFileString(_string)
+	get bytes()
 	{
-		const idx = _string.lastIndexOf(path.sep);
-		
-		if(idx === -1)
-		{
-			return _string.warn(true);
-		}
-		
-		const dir = _string.substr(0, idx);
-		const base = _string.substr(idx + 1);
+		return (this.size * this.iterations);
+	}
 
-		return (dir.info(true) + '/' + base.warn(true));//.bold(true));
+	finishRegular(_state)
+	{
+		if(!_state)
+		{
+			return this.finish(false);
+		}
+
+		if(!process.ansi)
+		{
+			console.eol();
+		}
+
+		console.info('Finished'.bold(true).underline(true) + '! We just wrote ' +
+			Erase.size(this.done) + ' (with ' + this.iterations.
+				toLocaleString().bold(true).info(true) + ' iterations).');
+
+		this.done /= this.iterations;
+
+		console.debug('This were %s files with ' + Erase.size(this.done) +
+			' in total.', this.map.size.toLocaleString().
+				bold(true).error(true));
+
+		return this.finish(_state, 'regular');
 	}
 
 	//
-	status(_file)
+	showErrors(_details = true)
 	{
-		const progress = '['.faint(true).defaultFG(true) +
-			this.progress.pad(this.max.percent, ' ', true) +
-			']'.faint(true).defaultFG(true);
-		var size = _file.size.warn(true).pad(this.max.size, ' ', true);
-		var iterations = (this.iterations <= 1 ? '' : (' ' +
-			(_file.iterations.toLocaleString().bold(true).info(true) +
-			' / ' + this.iterations.toLocaleString().bold(true).error(true)).
-				pad(this.max.iterations, ' ', true) + ' '));
-		if(_file.bytes === 0) iterations = ' '.repeat(iterations.textLength);
-		const sum = (
-			progress.textLength + 1 +
-			size.textLength + 1 +
-			iterations.textLength + 1);
-		var left = (console.width - sum);
-		var file;
-
-		if(_file.string.length < left)
+		if(this.errorList.length === 0)
 		{
-			file = Erase.beautifyFileString(_file.string) + ' ' +
-				String.none() + ('.'.repeat(left -
-					_file.string.length - 1)).
-						bold(true).faint(true);
+			console.info('No'.bold(true) + ' errors! ' +
+				':-)'.bold(true).debug(true));
+			return 0;
+		}
+
+		console.error('We collected %s errors during the whole process' +
+			(_details ? ':' : '.'),
+				this.errorList.length.toLocaleString().
+					bold(true).warn(true));
+
+		if(!_details)
+		{
+			return this.errorList.length;
+		}
+
+		console.eol();
+
+		var maxName = 0, len; for(const err of this.errorList)
+		{
+			if((len = err.name.length) > maxName)
+			{
+				maxName = len;
+			}
+		}
+
+		maxName += 2;
+		var line, diff;
+		const cwd = process.cwd();
+		const width = (console.width - 2);
+
+		for(const err of this.errorList)
+		{
+			line = ('['.debug(true) + err.name.bold(true).error(true) +
+				']'.debug(true)).pad(maxName, ' ', true);
+
+			if(err.PATH)
+			{
+				line += ('('.info(true).faint(true) + path.relative(
+					cwd, err.PATH).bold(true).debug(true) +
+					')'.info(true).faint(true));
+			}
+ 
+			diff = (width - line.textLength - 1);
+
+			if(diff > 0)
+			{
+				line += ' ' + err.message.substr(0, diff).
+					warn(true);
+			}
+
+			console.log(line);
+		}
+
+		console.eol();
+		return this.errorList.length;
+	}
+
+	finish(_state, _mode)
+	{
+		this.showErrors(true);
+
+		if(!_state)
+		{
+			process.exit(true);
+		}
+
+		process.exit(0);
+	}
+
+	//
+	eraseFiles(_callback)
+	{
+		const LIST = [ ... this.map.keys() ];
+
+		if(LIST.length === 0)
+		{
+			return _callback(0);
+		}
+
+		const total = LIST.length;
+		var rest = total;
+
+		const close = (_file) => {
+			if(!_file || !_file.handle) return false;
+			this.open.remove(_file);
+			fs.closeSync(_file.handle);
+			_file.handle = null;
+			return true;
+		};
+		
+		const fin = (_file, _error = null) => {
+			setImmediate(() => nextItem());
+			close(_file);
+			
+			if(_error)
+			{
+				this.pushError(_error, _file.path);
+			}
+
+			if(--rest <= 0 && this.open.length <= 0)
+			{
+				this.clearLines(0, 1);
+				return _callback(total / this.iterations);
+			}
+		};
+
+		const syncCallback = (_file, _error) => {
+			if(_error)
+			{
+				return fin(_file, _error);
+			}
+
+			if(_file.handle) fs.fchmod(_file.handle, (this.chmod === null ?
+				_file.mode : this.chmod),
+					(_err) => fin(_file, _err));
+			else fin(_file);
+		};
+
+		const doneCallback = (_file, _error, _written = _file.done) => {
+			if(_error)
+			{
+				setImmediate(() => nextItem());
+
+				close(_file);
+				rest -= this.iterations;
+
+				return this.pushError(_error, _file.path);
+			}
+			
+			if(_file.handle) fs.fsync(_file.handle,
+				(_err) => syncCallback(
+					_file, _err));
+			else fin(_file);
+		};
+
+		const openCallback = (_file, _error, _fd) => {
+			if(_error)
+			{
+				setImmediate(() => nextItem());
+				return this.pushError(_error, _file.path);
+			}
+
+			this.open.push(_file);
+			_file.handle = _fd;
+			
+			this.erase(_file, (... _a) => doneCallback(... _a));
+		};
+
+		const nextItem = () => {
+			if(LIST.length === 0 || rest <= 0 || this.open.length >= this.parallel)
+			{
+				return;
+			}
+
+			const file = this.map.get(LIST.shift());
+
+			fs.chmod(file.path, 0o600, (_err) => {
+				if(_err) this.pushError(_err, file.path);
+				else fs.open(file.path, 'rs+', 0o600,
+					(_err, _fd) => openCallback(
+						file, _err, _fd));
+				setImmediate(() => nextItem());
+			});
+		};
+
+		//
+		nextItem();
+	}
+	
+	erase(_file, _callback)
+	{
+		var rest = _file.bytes, done = 0;
+
+		const fin = () => {
+			if(++_file.iterations >= this.iterations)
+			{
+				this.regularProgressBars(true);
+				return _callback(_file, null, _file.done);
+			}
+			
+			rest = _file.bytes; done = 0;
+
+			fs.fsync(_file.handle, (_err) => {
+				if(_err) return _callback(_file, _err);
+				fs.closeSync(_file.handle);
+				_file.handle = fs.open(_file.path, 'rs+', 0o600,
+					(_err, _fd) => {
+						if(_err) return _callback(_file, _err, _file.done);
+						_file.handle = _fd; write(); }); });
+		};
+
+		const writeCallback = (_error, _written, _buffer) => {
+			this.done += _written;
+			_file.done += _written;
+			rest -= _written;
+			done += _written;
+
+			this.regularProgressBars();
+
+			if(_error)
+			{
+				return _callback(_file, _error, _file.done);
+			}
+			
+			if(rest <= 0)
+			{
+				fin();
+			}
+			else
+			{
+				write();
+			}
+		};
+		
+		const write = () => this.getBuffer(Math.min(rest, this.buffer),
+			(_err, _buf) => { if(_err) return _callback(_file, _err);
+				fs.write(_file.handle,
+					_buf, 0, _buf.length, done,
+					writeCallback);
+		});
+				
+		//
+		write();
+	}
+
+	//
+	regularProgressBars(_force = false)
+	{
+		if(!this.checkRefresh() && !_force)
+		{
+			return false;
+		}
+
+		const width = (console.width - 4);
+		const height = (console.height - 2);
+		const open = [ ... this.open ];
+		var result = Erase.progressBar(
+			this.done / this.bytes,
+			-6, false) + EOL;
+		var lines = 1, maxRela = 0;
+		var line, diff, rela, len;
+		
+		if(open.length === 0 || !process.ansi)
+		{
+			this.clearLines(lines);
+			process.stdout.write(result);
+			return result;
+		}
+		else if(open.length === 1)
+		{
+			result = '';
+			lines = 0;
 		}
 		else
 		{
-			file = '... ' + Erase.beautifyFileString(
-				_file.string.substr(_file.string.length -
-					(left -= 4)));
+			result += EOL;
+			lines = 2;
 		}
 
-		const result = progress + ' ' + file + ' ' + size + ' ' + iterations;
-		process.stdout.write(result + EOL);
+		for(var i = 0, l = 2; i < open.length && l < height; ++i, ++l)
+		{
+			if((len = open[i].relative.length) > maxRela)
+			{
+				maxRela = len;
+			}
+		}
+
+		maxRela = Math.min(maxRela + 4, Math._floor(width / DEFAULT_PROGRESS));
+
+		var barWidth = (width - maxRela - 5);
+		
+		for(var i = 0; i < open.length && lines < height; ++i, ++lines)
+		{
+			line = Erase.progressBar(
+				open[i].done / open[i].write,
+				barWidth, false);
+			diff = (width - line.textLength);
+			
+			if(diff > 0)
+			{
+				rela = open[i].relative;
+				diff -= rela.length;
+
+				if(diff > 0)
+				{
+					rela = ' '.repeat(diff) + rela;
+				}
+				else if(diff < 0)
+				{
+					rela = ' ...'.debug(true).bold(true) +
+						rela.substr(-(diff -= 4));
+				}
+
+				line = rela.defaultFG(true) + ' ' + line;
+			}
+
+			result += line + String.none() + EOL;
+		}
+		
+		this.clearLines(lines);
+		process.stdout.write(result);
 		return result;
+	}
+	
+	//
+	checkRefresh()
+	{
+		const now = Date.now();
+		const diff = (now - this.lastRefresh);
+		
+		if(diff < this.refresh)
+		{
+			return false;
+		}
+		
+		this.lastRefresh = now;
+		return true;
+	}
+	
+	clearLines(_lines_next = 0, _more = 0)
+	{
+		const result = (this.lines + _more);
+		
+		if(result <= 0)
+		{
+			return this.lines =
+				_lines_next;
+		}
+		
+		this.lines = _lines_next;
+		process.stdout.write('\r' +
+			String.up(result + _more) +
+			String.clearAfter());
+
+		return (result - _more);
+	}
+
+	static progressBar(_factor, _width_add = -8, _seq = true, _full = false)
+	{
+		_factor = Math.min(_factor, 1);
+
+		const result = { ob: progressStyle.ob, cb: progressStyle.cb,
+			done: { fg: [ ... progressStyle.done.fg ],
+				bg: [ ... progressStyle.done.bg ],
+				char: progressStyle.done.char },
+			todo: { fg: [ ... progressStyle.todo.fg ],
+				bg: [ ... progressStyle.todo.bg ],
+				char: progressStyle.todo.char },
+			value: {} };
+
+		result.value.text = String.none() + (result.value.percent =
+			Math.round(result.factor = _factor * 100,
+				DEFAULT_ROUND)).toFixed(DEFAULT_ROUND).info(true).
+					pad(Erase.getPercentStringMax(DEFAULT_ROUND),
+						' ', true).bold(true) + '%'.error(true) +
+							String.none();
+		if(_width_add > 0) result.value.width = _width_add;
+		else result.value.width = (console.width -
+			result.value.text.textLength + _width_add);
+		result.value.done = Math._round(_factor * result.value.width);
+		result.value.todo = (result.value.width - result.value.done);
+
+		const doneChar = (process.ansi ? ' ' : result.done.char);
+		const todoChar = (process.ansi ? ' ' : result.todo.char);
+
+		result.bar = (result.ob.warn(true).faint(true) +
+			doneChar.repeat(result.value.done).
+				fg(... result.done.fg, false).
+				bg(... result.done.bg, false) +
+			todoChar.repeat(result.value.todo).
+				fg(... result.todo.fg, false).
+				bg(... result.todo.bg, false) +
+			String.none() + result.cb.warn(true).faint(true));
+		result.result = result.value.text + ' ' + result.bar;
+		
+		if(_seq)
+		{
+			result.result = '\r' + String.clearLine() +
+				result.result + String.none();
+		}
+		
+		if(_full)
+		{
+			return result;
+		}
+		
+		return result.result;
+	}
+
+	//
+	unlinkItems(_callback)
+	{
+		const total = this.unlink;
+
+		if(total === 0)
+		{
+			return _callback(0);
+		}
+
+		var rest = total, open = 0, done = 0;
+		var list = this.rmList, state = 0;
+		
+		const updateProgressBar = (_factor) => {
+			if(!process.ansi) return;
+			process.stdout.write(
+				Erase.progressBar(_factor));
+		};
+
+		const removeProgressBar = () => {
+			if(!process.ansi) return;
+			process.stdout.write('\r' +
+				String.clearLine());
+		};
+		
+		const rmCallback = (_path, _err) => {
+			--open; ++done; --rest;
+
+			if(_err)
+			{
+				this.pushError(_err, _path);
+			}
+
+			updateProgressBar(done / total);
+
+			if(rest <= 0 && open <= 0)
+			{
+				removeProgressBar();
+				_callback(total);
+			}
+			else setImmediate(() => {
+				if(list !== null) nextItem(); });
+		};
+
+		const nextItem = () => {
+			if(list === null)
+			{
+				return;
+			}
+
+			if(state === 0 && list.length === 0)
+			{
+				if((list = this.rmdirList).length > 0)
+				{
+					state = 1;
+				}
+				else
+				{
+					state = 2;
+				}
+			}
+
+			if(state === 1 && list.length === 0)
+			{
+				list = null;
+				state = 2;
+			}
+
+			if(state === 2)
+			{
+				return;
+			}
+
+			if(open < this.parallel)
+			{
+				++open; const item = list.shift();
+				fs.rm(item, { recursive: (state > 0) },
+					(... _a) => rmCallback(item, ... _a));
+			}
+		
+			if(open < this.parallel)
+			{
+				setImmediate(() => nextItem());
+			}
+		};
+
+		nextItem();
+	}
+	
+	get unlink()
+	{
+		if(!this.delete) return 0;
+		return (this.rm + this.rmdir);
 	}
 
 	static getPercentStringMax(_round = DEFAULT_ROUND)
@@ -614,280 +1552,117 @@ class Erase extends Quant
 		
 		return result;
 	}
-	
+
 	//
-	get progress()
-	{
-		const from = (this.found.files * this.iterations);
-		const percent = Math.round(this.done / from * 100, DEFAULT_ROUND);
-		return (percent.toFixed(DEFAULT_ROUND).padStart(Erase.
-			getPercentStringMax(DEFAULT_ROUND), ' ')).info(true) +
-				'%'.error(true) + String.none();
-	}
-	
 	static get parameters()
 	{
 		return [
-			[ 'Delete everything', 'delete' ],
-			[ 'Random data', 'random' ],
-			[ 'Iterations', 'iterations' ],
-			[ 'Target mode', 'chmod' ],
-			[ 'Parallel writes', 'parallel' ],
-			[ 'Buffer/chunk size', 'buffer' ]
+			[ 'delete', 'Delete everything when finished', '--delete', 'regular' ],
+			[ 'random', 'Use random data, instead of zero\'s', '--random', '' ],
+			[ 'iterations', 'Iterations (multiple overwrites)', '--iterations', '' ],
+			[ 'chmod', 'Target file mode/permissions', '--chmod', 'regular' ],
+			[ 'parallel', 'Parallel writes (async, not threads)', '--parallel', 'regular' ],
+			[ 'buffer', 'Buffer/chunk size', '--buffer', '' ]
 		];
 	}
-
-	warning()
-	{
-		//
-		console.error(('WARNING'.inverse(true) + ': ' +
-			'Flash/SSD drives could cause less security!'
-				.bold(true)).underline(true));
-	}
-
-	intro()
-	{
-		//
-		console.info(EOL + '\t' + 'Parameters'.underline(true) + ':' + EOL);
-		const param = Erase.parameters; var maxKeyLength = 0, len, pa;
-
-		for(const p of param)
-		{
-			if((len = p[0].length) > maxKeyLength)
-			{
-				maxKeyLength = len;
-			}
-		}
-
-		for(const p of param)
-		{
-			if(bool(pa = this[p[1]]))
-			{
-				pa = pa.toString(true);
-			}
-			else if(numeric(pa, true, false))
-			{
-				if(p[1] === 'chmod')
-				{
-					pa = FileSystem.renderMode(pa, true).warn(true) + String.none() +
-						(' / ' + FileSystem.octalMode(pa).bold(true)).debug(true);
-				}
-				else
-				{
-					pa = pa.toLocaleString().warn(true);
-				}
-
-				if(p[1] === 'buffer' && this.buffer >= 1024)
-				{
-					pa += ' ('.debug(true) +
-						Math.size.styled(this.buffer).
-							error(true) +
-						')'.debug(true);
-				}
-			}
-			else if(string(pa, true))
-			{
-				pa = pa.warn(true);
-			}
-			else
-			{
-				if(p[1] === 'chmod')
-				{
-					pa = '-/-'.warn(true) + String.none() +
-						' (' + 'leaving originals'.debug(true) + ')';
-				}
-				else
-				{
-					throw new Error('Unexpected');
-				}
-			}
-
-			console.debug(
-				('['.faint(true) + p[0] +
-					']'.faint(true)).pad(
-						maxKeyLength + 2, ' ', true) +
-				' ' + pa.bold(true));
-		}
-
-		console.eol();
-	}
-
-	//
-	prepareFile(_path)
-	{
-		const stat = fs.statSync(_path, {
-			bigint: false, throwIfNoEntry: false });
 	
-		if(!stat)
+	static get regularParameters()
+	{
+		const parameters = this.parameters;
+		const result = [];
+		
+		for(var i = 0, j = 0; i < parameters.length; ++i)
 		{
-			return null;
+			if(!parameters[i][3] || parameters[i][3] === 'regular')
+			{
+				result[j++] = parameters[i];
+			}
 		}
 		
-		this.bytes += stat.size;
+		return result;
+	}
+	
+	static get freeSpaceParameters()
+	{
+		const parameters = this.parameters;
+		const result = [];
 		
-		const result = { iterations: 0,
-			path: _path, string: this.getFileString(_path),
-			stat, bytes: stat.size, mode: stat.mode,
-			size: Math.size.styled(stat.size).debug(true) +
-				(stat.size >= 1024 ? (' (' +
-					stat.size.toLocaleString().bold(true) + ' Bytes)'.faint(true)).
-						defaultFG(true).faint(true) : '') };
-
-		var len;
-
-		if((len = result.string.textLength) > this.max.file)
+		for(var i = 0, j = 0; i < parameters.length; ++i)
 		{
-			this.max.file = len;
+			if(!parameters[i][3] || parameters[i][3] === 'free')
+			{
+				result[j++] = parameters[i];
+			}
 		}
-
+		
 		return result;
 	}
 
-	erase()
+	static get regularVariables()
 	{
-		//
-		if(this.found.files === 0)
-		{
-			return this.finish();
-		}
-
-		//
-		this.open = [];
-		this.active = 0;
-
-		//
-		const openFiles = () => { var file;
-			while(this.active < this.parallel && this.list.length > 0)
-				this.handleFile(
-					this.list.shift(),
-					() => setImmediate(() => {
-						if(this.fin) this.finish();
-						else openFiles(); }));
-		};
-		
-		openFiles();
+		return [
+			//[ 'errors', 'All errors which occured until now' ],
+			[ 'count', 'All files we effectively overwrite' ],
+			[ 'size', 'Size of all real files together' ],
+			[ 'bytes', 'Data we effectively write (w/ iterations)' ],
+			[ 'directories', 'Amount of directories w/ files to erase' ],
+			[ 'maxDepth', 'Maximum depth on traversing directories' ],
+			[ 'rm', 'Files selected for deletion (unlink)' ],
+			[ 'rmdir', 'Directories for full deletion, from command line' ],
+			[ 'found', 'All found items in file system, including non-regular ones' ],
+			[ 'empty', 'Empty files (won\'t get overwritten, of course)' ],
+			[ 'ignored', 'Non-regular files, like symbolic links (ignored)' ],
+			[ 'prohibited', 'Items not below current worling directory' ],
+			[ 'multiple', 'Items selected multiple times (counted only once)' ]
+		];
 	}
 
-	handleFile(_file, _callback)
+	static get freeSpaceVariables()
 	{
-		//
-		fs.chmodSync(_file.path, 0o600);
+throw new Error('TODO');
+	}
 
-		if(_file.bytes > 0) _file.handle = fs.openSync(
-			_file.path, 'rs+', 0o600);
-		else _file.handle = null;
-
-		//
-		this.open.push(_file);
-		++_file.iterations;
-		++this.active;
-		
-		//
-		const finish = () => {
-			const rest = (_err) => {
-				if(_err) throw _err;
-
-				if(_file.handle)
-				{
-					fs.fchmodSync(_file.handle, (this.chmod === null ?
-						_file.mode : this.chmod));
-					fs.closeSync(_file.handle);
-					_file.handle = null;
-				}
-				
-				++this.done; --this.active;
-				this.open.remove(_file);
-
-				var again;
-				
-				if(_file.bytes === 0)
-				{
-					this.done += (this.iterations - 1);
-					again = false;
-				}
-				else if(_file.iterations < this.iterations)
-				{
-					again = true;
-				}
-				else
-				{
-					again = false;
-				}
-				
-				if(again)
-				{
-					setImmediate(() => {
-						this.handleFile(
-							_file,
-							_callback); });
-				}
-				else
-				{
-					++this.files;
-					setImmediate(() => _callback(_file));
-				}
-				
-				this.status(_file);
-			};
-			
-			if(_file.handle) fs.fsync(_file.handle, rest);
-			else rest(null);
-		};
-
-		if(!_file.handle)
+	get rm()
+	{
+		if(this.delete)
 		{
-			return finish();
+			return this.rmList.length;
 		}
 
-		var position = 0;
-		var rest = _file.bytes;
+		return 0;
+	}
 
-		if(rest === 0)
+	get rmdir()
+	{
+		if(this.delete)
 		{
-			return finish();
+			return this.rmdirList.length;
 		}
 
-		const getSize = () => Math.min(rest, this.buffer);
+		return 0;
+	}
 
-		//
-		const writeCallback = (_err, _written, _buffer) => {
-			if(_err)
-			{
-				throw _err;
-			}
+	get errors()
+	{
+		return this.errorList.length;
+	}
 
-			position += _written;
-			rest -= _written;
+	//
+	getBuffer(_size, _callback)
+	{
+		if(this.random)
+		{
+			return crypt.getRandomBytes(_size, _callback);
+		}
 
-			if(rest <= 0)
-			{
-				return finish();
-			}
+		const result = new Uint8Array(_size);
 
-			this.getBuffer(getSize(), bufferCallback);
-		};
+		if(func(_callback))
+		{
+			_callback(null, result);
+		}
 
-		const write = (_buffer) => {
-			fs.write(
-				_file.handle,
-				_buffer,
-				0,
-				_buffer.length,
-				position,
-				writeCallback);
-		};
-
-		const bufferCallback = (_err, _buf) => {
-			if(_err)
-			{
-				throw _err;
-			}
-
-			write(_buf);
-		};
-
-		this.getBuffer(getSize(), bufferCallback);
-		return true;
+		return result;
 	}
 }
 

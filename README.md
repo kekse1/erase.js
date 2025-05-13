@@ -24,6 +24,7 @@ But this is still a [**TODO**](#todo) item. Should be ready very soon..
 <br>
 
 ## News
+* \[**2025-05-14**\] Completely **rewritten** from scratch (no current screenshot available yet)!
 * \[**2025-05-01**\] ATM I'm implementing everything again, just from scratch (w/ all [TODO](#todo) items this time);
 * \[**2025-04-27**\] Just published an [example screenshot](#screenshot) here.
 * \[**2025-04-25**\] Now also w/ `--chmod` (plus [config.js](#parameters-and-configuration) change);
@@ -38,24 +39,32 @@ But this is still a [**TODO**](#todo) item. Should be ready very soon..
 <br>
 
 ## Download
-* [**`./src/js/`**](src/js/) (updated **2025-04-25**);
-* [**`./src/sh/`**](src/sh/) (published **2025-04-09**);
+Here's the newest (second) version available (which isn't even covered by the
+[screenshot](#screenshot) below. Much better code, beautified everything up,
+and most [TODO](#todo) items are integrated now.
+
+* [**`./src/js/`**](src/js/) (updated **2025-05-14**);
+* [**`./src/sh/`**](src/sh/) (published **2025-05-14**);
 
 ### Parameters and Configuration
-* [**`param.json`**](src/json/param.json) (updated **2025-04-25**);
-* [**`config.json`**](src/json/config.json) (updated **2025-04-25**);
+* [**`param.json`**](src/json/param.json) (updated **2025-05-14**);
+* [**`config.json`**](src/json/config.json) (updated **2025-05-14**);
 
 <br>
 
 ## Architecture/Structure
-This project is also based on some base implementation which is currently not available for public;
-**it won't run as-is**!
+This project is also based on some base implementation which is currently
+not available for public; **it won't run as-is**!
 
 The reason I made this one public is to provide you some example code you could use.
 Or feel free to create a full fledged version out of this one.
 
 ## Screenshot
 This is an [example screenshot](img/example.png).
+
+> [!WARNING]
+> This one shows the **first version** only!
+> My newest rewrite (from scratch) looks completely different!
 
 ![Example screenshot](img/example.png)
 

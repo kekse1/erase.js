@@ -1,4 +1,8 @@
 {
+	"base": {
+		"type": "file",
+		"required": true
+	},
 	"project": {
 		"type": "directory",
 		"required": true
@@ -35,8 +39,12 @@
 		"type": [ "boolean", "integer" ],
 		"required": false
 	},
-	"space": {
+	"free": {
 		"type": "boolean",
+		"required": false
+	},
+	"refresh": {
+		"type": "integer",
 		"required": false
 	}
 }

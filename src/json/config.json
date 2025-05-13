@@ -12,7 +12,7 @@
 	"iterations": 8,
 
 	/* *not* threads, but w/ ASYNC operations we can open more files in "parallel" .. */
-	"parallel": 8,
+	"parallel": 16,
 
 	/* how many bytes reverse and write in each write() step, etc..? */
 	"buffer": 33554432,
@@ -29,6 +29,9 @@
 
 	/* .. what you see is what you get. */
 	"interface": {
+
+		/* atm only for the progress bar(s).. interval for screen refresh. */
+		"refresh": 500,
 	
 		/* likely the same like in all my other sub-projects..  */
 		"progress": {
