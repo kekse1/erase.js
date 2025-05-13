@@ -81,13 +81,13 @@ class EraseHelp
 			}
 		}
 
-		maxKeyLen += 4;
+		maxKeyLen += 2;
 		const onlyRegular = ' (only '.debug(true) + 'regular mode'.info(true) + ')'.debug(true);
 		const onlyFreeSpace = ' (only '.debug(true) + ('--free'.warn(true) + ' space').info(true) + ' mode)'.debug(true);
 
 		for(const param of parameters)
 		{
-			string = '\t' + param[0].padStart(maxKeyLen, ' ').
+			string = '\t' + param[2].padStart(maxKeyLen, ' ').
 				info(true) + ' \t // '.debug(true) +
 					param[1].error(true);
 
