@@ -4,7 +4,7 @@
  */
 
 //
-import Erase from './erase.js';
+import Parameters from './param.js';
 
 //
 class EraseHelp
@@ -70,7 +70,7 @@ class EraseHelp
 			'so all ' + 'optional'.bold(true) + ')').debug(true) + ':');
 
 		console.eol();
-		const parameters = Erase.parameters;
+		const parameters = Parameters.parameters;
 		var maxKeyLen = 0, len, string;
 		
 		for(const param of parameters)

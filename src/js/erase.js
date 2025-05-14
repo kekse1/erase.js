@@ -25,6 +25,7 @@ import crypt from '../shared/crypt.js';
 import path from 'node:path';
 import fs from 'node:fs';
 import Help from './help.js';
+import Parameters from './param.js';
 
 //
 class Erase extends Quant
@@ -294,7 +295,7 @@ class Erase extends Quant
 		this.multiple = 0;
 		this.found = 0;
 		this.ignored = 0;
-		this.maxDepth = 1;
+		this.depth = 1;
 		this.empty = 0;
 		this.rmList = [ ... this.items.files ];
 		this.rmdirList = [ ... this.items.directories ];
@@ -302,7 +303,6 @@ class Erase extends Quant
 		this.done = 0;
 		this.set = new Set();
 		this.map = new Map();
-		this.directories = 0;
 		this.open = [];
 		this.lastRefresh = 0;
 		this.lines = 0;
@@ -380,12 +380,10 @@ throw new Error('TODO: --free');
 			}
 			else
 			{
-				if(_depth > this.maxDepth)
+				if(_depth > this.depth)
 				{
-					this.maxDepth = _depth;
+					this.depth = _depth;
 				}
-
-				var pushed = false;
 
 				for(var i = 0; i < _files.length; ++i)
 				{
@@ -415,12 +413,6 @@ throw new Error('TODO: --free');
 					}
 					else if(_files[i].isFile())
 					{
-						if(!pushed)
-						{
-							++this.directories;
-							pushed = true;
-						}
-
 						result[index++] = p;
 					}
 					else
@@ -630,8 +622,8 @@ throw new Error('TODO: --free');
 	//
 	regularVariables()
 	{
-		const regularVariables = Erase.regularVariables;
-		const maxKeyLen = Erase.getMaxRegularVariablesKeyLength(2);
+		const regularVariables = Parameters.regularVariables;
+		const maxKeyLen = Parameters.getMaxRegularVariablesKeyLength(2);
 		const lines = [], width = console.width;
 		var key, value, desc, len, zero;
 
@@ -710,38 +702,6 @@ throw new Error('TODO: --free');
 		return this.map.size;
 	}
 
-	static getMaxRegularVariablesKeyLength(_add = 2)
-	{
-		const variables = this.regularVariables;
-		var result = 0, length;
-
-		for(const param of variables)
-		{
-			if((length = param[0].length) > result)
-			{
-				result = length;
-			}
-		}
-
-		return (result + _add);
-	}
-
-	static getMaxRegularParametersKeyLength(_add = 2)
-	{
-		const parameters = this.regularParameters;
-		var result = 0, length;
-
-		for(const param of parameters)
-		{
-			if((length = param[0].length) > result)
-			{
-				result = length;
-			}
-		}
-
-		return (result + _add);
-	}
-
 	regularParameters()
 	{
 		console.info('Your ' + 'parameters'.bold(true) + ' ' +
@@ -751,8 +711,8 @@ throw new Error('TODO: --free');
 					debug(true) + ':'.info(true));
 		console.eol();
 
-		const parameters = Erase.regularParameters;
-		const maxKeyLen = Erase.getMaxRegularParametersKeyLength(2);
+		const parameters = Parameters.regularParameters;
+		const maxKeyLen = Parameters.getMaxRegularParametersKeyLength(2);
 		const width = console.width;
 		var key, name, desc, value, left;
 		
@@ -977,7 +937,6 @@ throw new Error('TODO: --free');
 	continueRegular()
 	{
 		delete this.set;
-		++this.directories;
 
 		const more = (this.rmList.length > 0 ||
 			this.rmdirList.length > 0);
@@ -1582,22 +1541,6 @@ throw new Error('TODO: --free');
 		return result;
 	}
 	
-	static get freeSpaceParameters()
-	{
-		const parameters = this.parameters;
-		const result = [];
-		
-		for(var i = 0, j = 0; i < parameters.length; ++i)
-		{
-			if(!parameters[i][3] || parameters[i][3] === 'free')
-			{
-				result[j++] = parameters[i];
-			}
-		}
-		
-		return result;
-	}
-
 	static get regularVariables()
 	{
 		return [
@@ -1605,8 +1548,7 @@ throw new Error('TODO: --free');
 			[ 'count', 'All files we effectively overwrite' ],
 			[ 'size', 'Size of all real files together' ],
 			[ 'bytes', 'Data we effectively write (w/ iterations)' ],
-			[ 'directories', 'Amount of directories w/ files to erase' ],
-			[ 'maxDepth', 'Maximum depth on traversing directories' ],
+			[ 'depth', 'Maximum depth on traversing directories' ],
 			[ 'rm', 'Files selected for deletion (unlink)' ],
 			[ 'rmdir', 'Directories for full deletion, from command line' ],
 			[ 'found', 'All found items in file system, including non-regular ones' ],
@@ -1615,11 +1557,6 @@ throw new Error('TODO: --free');
 			[ 'prohibited', 'Items not below current worling directory' ],
 			[ 'multiple', 'Items selected multiple times (counted only once)' ]
 		];
-	}
-
-	static get freeSpaceVariables()
-	{
-throw new Error('TODO');
 	}
 
 	get rm()
