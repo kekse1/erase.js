@@ -712,7 +712,7 @@ throw new Error('TODO: --free');
 		console.eol();
 
 		const parameters = Parameters.regularParameters;
-		const maxKeyLen = Parameters.getMaxRegularParametersKeyLength(2);
+		const maxKeyLen = Parameters.getMaxRegularParametersSwitchLength(2);
 		const width = console.width;
 		var key, name, desc, value, left;
 		

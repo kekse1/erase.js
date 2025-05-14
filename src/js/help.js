@@ -71,23 +71,14 @@ class EraseHelp
 
 		console.eol();
 		const parameters = Parameters.parameters;
-		var maxKeyLen = 0, len, string;
-		
-		for(const param of parameters)
-		{
-			if((len = param[0].length) > maxKeyLen)
-			{
-				maxKeyLen = len;
-			}
-		}
-
-		maxKeyLen += 2;
+		const maxKeyLen = Parameters.getMaxRegularParametersSwitchLength(2);
 		const onlyRegular = ' (only '.debug(true) + 'regular mode'.info(true) + ')'.debug(true);
 		const onlyFreeSpace = ' (only '.debug(true) + ('--free'.warn(true) + ' space').info(true) + ' mode)'.debug(true);
+		var str;
 
 		for(const param of parameters)
 		{
-			string = '\t' + param[2].padStart(maxKeyLen, ' ').
+			str = '\t' + param[2].padStart(maxKeyLen, ' ').
 				info(true) + ' \t // '.debug(true) +
 					param[1].error(true);
 
@@ -95,15 +86,15 @@ class EraseHelp
 			{
 				if(param[3] === 'regular')
 				{
-					string += onlyRegular;
+					str += onlyRegular;
 				}
 				else if(param[3] === 'free')
 				{
-					string += onlyFreeSpace;
+					str += onlyFreeSpace;
 				}
 			}
 			
-			console.log(string);
+			console.log(str);
 		}
 
 		console.eol();

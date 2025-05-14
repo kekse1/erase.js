@@ -89,14 +89,14 @@ parameter.getMaxRegularVariablesKeyLength = (_add = 2) => {
 	return (result + _add);
 };
 
-parameter.getMaxRegularParametersKeyLength = (_add = 2) => {
+parameter.getMaxRegularParametersSwitchLength = (_add = 2) => {
 	var result = 0, length;
 
 	for(var i = 0; i < parameters.length; ++i)
 	{
 		if(!parameters[i][3] || parameters[i][3] === 'regular')
 		{
-			if((length = parameters[i][0].length) > result)
+			if((length = parameters[i][2].length) > result)
 			{
 				result = length;
 			}
