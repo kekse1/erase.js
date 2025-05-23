@@ -1260,7 +1260,19 @@ throw new Error('TODO: --free');
 		
 		if(open.length === 0 || !process.ansi)
 		{
-			this.clearLines(lines);
+			//
+			//todo/TEST this!!1
+			//
+			if(process.ansi)
+			{
+				this.clearLines(lines);
+			}
+			else
+			{
+				result = '\r' +
+					result.slice(0, -1);
+			}
+
 			process.stdout.write(result);
 			return result;
 		}
