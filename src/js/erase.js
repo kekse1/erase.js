@@ -785,12 +785,16 @@ throw new Error('TODO: --free');
 
 	prompt(_callback, _twice = true, _print = true)
 	{
+		const withAnsi = () => { this.lines = 2; this.clearLines(); }
+
 		const accepted = () => {
+			if(_print && process.ansi) withAnsi();
 			if(_print) console.info('Accepted'.bold(true) + '! So we ' + 'continue'.underline(true).warn(true) + ' here.');
 			if(_callback) _callback(true);
 		};
 		
 		const rejected = () => {
+			if(_print && process.ansi) withAnsi();
 			if(_print) console.error('Rejected'.bold(true) + '! So we ' + 'stop'.underline(true).warn(true) + ' here.');
 			if(_callback) _callback(false);
 			else this.destroy(null, true);
@@ -968,10 +972,10 @@ throw new Error('TODO: --free');
 			console.eol();
 
 			this.eraseFiles(() => {
+				console.eol();
 				console.info('Secure erasing ' + 'done'.bold(true) + '! :-D');
 
 				this.unlinkPrompt((_accepted) => {
-					if(_accepted !== null) this.clearLines(0, 2);
 					if(more && _accepted)
 						this.unlinkItems(() => {
 							this.finishRegular(true); });
@@ -998,6 +1002,7 @@ throw new Error('TODO: --free');
 			console.eol();
 		}
 
+		console.eol();
 		console.info('Finished'.bold(true).underline(true) + '! We just wrote ' +
 			Erase.size(this.done) + ' (with ' + this.iterations.
 				toLocaleString().bold(true).info(true) + ' iterations).');
@@ -1014,6 +1019,8 @@ throw new Error('TODO: --free');
 	//
 	showErrors(_details = true)
 	{
+		console.eol();
+
 		if(this.errorList.length === 0)
 		{
 			console.info('No'.bold(true) + ' errors! ' +
@@ -1260,9 +1267,6 @@ throw new Error('TODO: --free');
 		
 		if(open.length === 0 || !process.ansi)
 		{
-			//
-			//todo/TEST this!!1
-			//
 			if(process.ansi)
 			{
 				this.clearLines(lines);

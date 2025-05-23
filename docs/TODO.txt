@@ -11,7 +11,3 @@
 
 	# use 'String.numerus(_count)' everywhere..! ;-)
 
-	# w/out ansi: single progress bar w/o newline, so \r works! ;-)
-
-		# only need to test it now!
-

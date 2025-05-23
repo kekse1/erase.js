@@ -26,6 +26,7 @@ But this is still a [**TODO**](#todo) item. Should be ready very soon..
 <br>
 
 ## News
+* \[**2025-05-24**\] Some design (interface) improvements and fixes.. maybe more.
 * \[**2025-05-14**\] Completely **rewritten** from scratch (now also with new [screenshot](#screenshot)), v**2**;
 * \[**2025-05-01**\] ATM I'm implementing everything again, just from scratch (w/ all [TODO](#todo) items this time);
 * \[**2025-04-27**\] Just published an [example screenshot](#screenshot) here.
@@ -46,7 +47,7 @@ Here's the newest (second) version available.
 Much better code, beautified everything up, and most [TODO](#todo) items are integrated now.
 The [older version](src/js/erase.v1.js) is also there, beneath the [newest version](src/js/erase.js).
 
-* [**`./src/js/`**](src/js/) (updated **2025-05-14**);
+* [**`./src/js/`**](src/js/) (updated **2025-05-24**);
 * [**`./src/sh/`**](src/sh/) (published **2025-05-14**);
 
 ### Parameters and Configuration
