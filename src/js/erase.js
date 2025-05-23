@@ -964,16 +964,16 @@ throw new Error('TODO: --free');
 		this.prompt((_accepted) => { console.eol();
 			if(!_accepted) return this.finishRegular(false);
 
-			this.clearLines(0, 2);
+			this.lines = 1; this.clearLines();
 			console.info('Now we ' + 'overwrite'.error(true) +
 				' %s ' + 'files'.warn(true) + '!',
 					this.map.size.toLocaleString().
 						bold(true).error(true));
 			console.eol();
-
 			this.eraseFiles(() => {
 				console.eol();
-				console.info('Secure erasing ' + 'done'.bold(true) + '! :-D');
+				this.lines = 2; this.clearLines();
+				console.info('Secure erasing ' + 'DONE'.bold(true).warn(true) + '! ' + ':-D'.debug(true));
 
 				this.unlinkPrompt((_accepted) => {
 					if(more && _accepted)
@@ -1261,7 +1261,7 @@ throw new Error('TODO: --free');
 		const open = [ ... this.open ];
 		var result = Erase.progressBar(
 			this.done / this.bytes,
-			-6, false) + EOL;
+			-6, false);
 		var lines = 1, maxRela = 0;
 		var line, diff, rela, len;
 		
@@ -1270,25 +1270,28 @@ throw new Error('TODO: --free');
 			if(process.ansi)
 			{
 				this.clearLines(lines);
+				result += EOL;
 			}
 			else
 			{
-				result = '\r' +
-					result.slice(0, -1);
+				result = '\r' + result;
 			}
 
 			process.stdout.write(result);
 			return result;
 		}
-		else if(open.length === 1)
-		{
-			result = '';
-			lines = 0;
-		}
 		else
 		{
-			result += EOL;
-			lines = 2;
+			if(open.length === 1)
+			{
+				result = '';
+				lines = 0;
+			}
+			else
+			{
+				result += EOL + EOL;
+				lines = 2;
+			}
 		}
 
 		for(var i = 0, l = 2; i < open.length && l < height; ++i, ++l)
@@ -1353,6 +1356,11 @@ throw new Error('TODO: --free');
 	
 	clearLines(_lines_next = 0, _more = 0)
 	{
+		if(!process.ansi)
+		{
+			return null;
+		}
+
 		const result = (this.lines + _more);
 		
 		if(result <= 0)
