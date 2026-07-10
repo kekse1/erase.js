@@ -1,7 +1,5 @@
 <img src="https://kekse.biz/github.php?draw&override=github:erase.js" />
 
-<br>
-
 # Erase.js
 
 The plan is to wipe all the [**Termux Linux**](https://termux.dev/) files
@@ -75,10 +73,12 @@ And this is the [**older version**](src/js/erase.v1.js) (**v1**).
 ## TODO
 There's one little [**`TODO.txt`**](docs/TODO.txt) for this (sub-)project.
 
-<br><br>
+<br><br><br>
 
 # Contact
 <img src="https://kekse.biz/github.php?override=github:erase.js&draw&text=erase.js@kekse.biz&angle=6&size=38pt&fg=150,20,90&font=OpenSans&ro&readonly&h=64&v=16" />
+
+<br>
 
 # Copyright and License
 The Copyright is [(c) Sebastian Kucharczyk](./COPYRIGHT.txt),
