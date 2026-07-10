@@ -1,6 +1,6 @@
 <img src="https://kekse.biz/github.php?draw&override=github:erase.js" />
 
-# Erase.js
+# `Erase.js`
 
 The plan is to wipe all the [**Termux Linux**](https://termux.dev/) files
 on my smartphone (more/less) securely.. by traversing a directory and
